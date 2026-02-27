@@ -12,6 +12,9 @@ export default {
         "2xl": "1400px",
       },
     },
+    fontFamily: {
+      sans: ['Poppins', 'sans-serif'],
+    },
     extend: {
       colors: {
         border: "hsl(var(--border))",
@@ -57,6 +60,9 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        "course-pink": "hsl(var(--course-pink))",
+        "course-green": "hsl(var(--course-green))",
+        "course-purple": "hsl(var(--course-purple))",
       },
       borderRadius: {
         lg: "var(--radius)",

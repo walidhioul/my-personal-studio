@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Globe } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
@@ -43,8 +44,8 @@ const Navbar = () => {
             <Globe size={16} />
             {lang === "en" ? "العربية" : "English"}
           </Button>
-          <Button variant="ghost" size="sm">{t.nav.login}</Button>
-          <Button size="sm">{t.nav.startLearning}</Button>
+          <Button variant="ghost" size="sm" asChild><Link to="/login">{t.nav.login}</Link></Button>
+          <Button size="sm" asChild><Link to="/register">{t.nav.startLearning}</Link></Button>
         </div>
 
         <div className="flex md:hidden items-center gap-2">
@@ -66,8 +67,8 @@ const Navbar = () => {
               </a>
             ))}
             <div className="flex gap-2 pt-2">
-              <Button variant="ghost" size="sm">{t.nav.login}</Button>
-              <Button size="sm">{t.nav.startLearning}</Button>
+              <Button variant="ghost" size="sm" asChild><Link to="/login">{t.nav.login}</Link></Button>
+              <Button size="sm" asChild><Link to="/register">{t.nav.startLearning}</Link></Button>
             </div>
           </nav>
         </div>

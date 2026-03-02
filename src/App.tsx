@@ -7,6 +7,9 @@ import { LanguageProvider } from "@/i18n/LanguageContext";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import PlacementTest from "./pages/PlacementTest";
+import QuizResult from "./pages/QuizResult";
+import Courses from "./pages/Courses";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,6 +25,9 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/placement-test" element={<PlacementTest />} />
+            <Route path="/result" element={<QuizResult />} />
+            <Route path="/courses" element={<Courses />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

@@ -9,9 +9,9 @@ const Navbar = () => {
   const { t, lang, setLang } = useLanguage();
 
   const navLinks = [
-    { label: t.nav.home, href: "#" },
-    { label: t.nav.courses, href: "#courses" },
-    { label: t.nav.aboutMe, href: "#about" },
+    { label: t.nav.home, href: "/" },
+    { label: t.nav.courses, href: "/courses" },
+    { label: lang === "en" ? "Placement Test" : "اختبار المستوى", href: "/placement-test" },
     { label: t.nav.contact, href: "#contact" },
   ];
 
@@ -33,9 +33,9 @@ const Navbar = () => {
 
         <nav className="hidden md:flex items-center gap-8">
           {navLinks.map((link) => (
-            <a key={link.label} href={link.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <Link key={link.label} to={link.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               {link.label}
-            </a>
+            </Link>
           ))}
         </nav>
 
@@ -62,9 +62,9 @@ const Navbar = () => {
         <div className="md:hidden border-t border-border bg-background px-4 pb-4">
           <nav className="flex flex-col gap-3 pt-3">
             {navLinks.map((link) => (
-              <a key={link.label} href={link.href} className="text-sm text-muted-foreground hover:text-foreground" onClick={() => setMobileOpen(false)}>
+              <Link key={link.label} to={link.href} className="text-sm text-muted-foreground hover:text-foreground" onClick={() => setMobileOpen(false)}>
                 {link.label}
-              </a>
+              </Link>
             ))}
             <div className="flex gap-2 pt-2">
               <Button variant="ghost" size="sm" asChild><Link to="/login">{t.nav.login}</Link></Button>

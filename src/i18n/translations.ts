@@ -1,0 +1,133 @@
+export const translations = {
+  en: {
+    dir: "ltr" as const,
+    nav: {
+      home: "Home",
+      courses: "Courses",
+      aboutMe: "About Me",
+      contact: "Contact",
+      login: "Login",
+      startLearning: "Start Learning",
+    },
+    hero: {
+      titleLine1: "Launch Your",
+      titleLine2: "English Journey",
+      titleHighlight: "to Success",
+      description:
+        "Master English with personalized lessons, structured courses, and expert guidance. From A1 to C2, I'll help you reach fluency faster than ever.",
+      cta: "Start Your Journey",
+      demo: "Watch Demo",
+    },
+    why: {
+      title: "Why Choose My English Academy?",
+      subtitle:
+        "Experience personalized learning with proven methods that have helped hundreds of students achieve fluency",
+      features: [
+        { title: "Structured Learning Path", desc: "Follow a clear progression from A1 to C2 levels with carefully designed curriculum and milestones." },
+        { title: "Live & Recorded Lessons", desc: "Access high-quality video lessons anytime and join interactive live sessions for real-time practice." },
+        { title: "Certified Progress", desc: "Earn recognized certificates as you complete each level and track your improvement journey." },
+        { title: "Personal Attention", desc: "Get individual feedback, customized study plans, and direct access to your instructor." },
+        { title: "Learn Anywhere", desc: "Access your courses on any device with our responsive platform and mobile-friendly design." },
+        { title: "Bilingual Support", desc: "Learn with English-Arabic support, making complex concepts easier to understand." },
+      ],
+    },
+    courses: {
+      title: "Popular Courses",
+      subtitle: "Start your English journey with our most loved courses",
+      viewAll: "View All Courses",
+      items: [
+        { title: "English Foundations", desc: "Perfect for complete beginners. Learn basic vocabulary, grammar, and conversational skills." },
+        { title: "Conversation Master", desc: "Build confidence in speaking and understand complex conversations and texts." },
+        { title: "Fluency Mastery", desc: "Achieve near-native fluency with advanced grammar, vocabulary, and cultural nuances." },
+      ],
+    },
+    testimonials: {
+      title: "Student Success Stories",
+      subtitle: "See how our students transformed their English skills",
+      items: [
+        "The structured approach and personal attention helped me improve from A2 to B2 in just 6 months. The live sessions were incredibly valuable!",
+        "Amazing teacher! The bilingual support made learning so much easier. I finally feel confident speaking English at work.",
+        "The course materials are excellent and the platform is so easy to use. I love being able to learn at my own pace.",
+      ],
+    },
+    cta: {
+      title: "Ready to Launch Your English Journey?",
+      subtitle: "Join hundreds of successful students who have transformed their English skills and achieved their dreams.",
+      trial: "Start Free Trial",
+      consult: "Schedule Consultation",
+    },
+    footer: {
+      description: "Empowering students to achieve English fluency through personalized learning, expert guidance, and proven methodologies.",
+      quickLinks: "Quick Links",
+      contactInfo: "Contact Info",
+      copyright: "© 2024 To The Moon With English. All rights reserved.",
+    },
+  },
+  ar: {
+    dir: "rtl" as const,
+    nav: {
+      home: "الرئيسية",
+      courses: "الدورات",
+      aboutMe: "عني",
+      contact: "تواصل",
+      login: "تسجيل الدخول",
+      startLearning: "ابدأ التعلم",
+    },
+    hero: {
+      titleLine1: "انطلق في",
+      titleLine2: "رحلتك الإنجليزية",
+      titleHighlight: "نحو النجاح",
+      description:
+        "أتقن اللغة الإنجليزية مع دروس مخصصة، ودورات منظمة، وإرشاد متخصص. من A1 إلى C2، سأساعدك على تحقيق الطلاقة أسرع من أي وقت مضى.",
+      cta: "ابدأ رحلتك",
+      demo: "شاهد العرض",
+    },
+    why: {
+      title: "لماذا تختار أكاديميتي للإنجليزية؟",
+      subtitle:
+        "تجربة تعلم شخصية بأساليب مثبتة ساعدت مئات الطلاب على تحقيق الطلاقة",
+      features: [
+        { title: "مسار تعلم منظم", desc: "اتبع تقدمًا واضحًا من المستوى A1 إلى C2 مع منهج مصمم بعناية ومعالم محددة." },
+        { title: "دروس مباشرة ومسجلة", desc: "الوصول إلى دروس فيديو عالية الجودة في أي وقت والانضمام إلى جلسات تفاعلية مباشرة." },
+        { title: "تقدم معتمد", desc: "احصل على شهادات معترف بها عند إكمال كل مستوى وتتبع رحلة تحسنك." },
+        { title: "اهتمام شخصي", desc: "احصل على ملاحظات فردية وخطط دراسية مخصصة ووصول مباشر لمدربك." },
+        { title: "تعلم من أي مكان", desc: "الوصول إلى دوراتك على أي جهاز مع منصتنا المتجاوبة والمتوافقة مع الهاتف." },
+        { title: "دعم ثنائي اللغة", desc: "تعلم مع دعم إنجليزي-عربي، مما يجعل المفاهيم المعقدة أسهل للفهم." },
+      ],
+    },
+    courses: {
+      title: "الدورات الشائعة",
+      subtitle: "ابدأ رحلتك في تعلم الإنجليزية مع دوراتنا الأكثر شعبية",
+      viewAll: "عرض جميع الدورات",
+      items: [
+        { title: "أساسيات الإنجليزية", desc: "مثالي للمبتدئين تمامًا. تعلم المفردات الأساسية والقواعد ومهارات المحادثة." },
+        { title: "إتقان المحادثة", desc: "ابنِ ثقتك في التحدث وافهم المحادثات والنصوص المعقدة." },
+        { title: "إتقان الطلاقة", desc: "حقق طلاقة شبه أصلية مع قواعد متقدمة ومفردات وفروق ثقافية." },
+      ],
+    },
+    testimonials: {
+      title: "قصص نجاح الطلاب",
+      subtitle: "شاهد كيف حوّل طلابنا مهاراتهم في الإنجليزية",
+      items: [
+        "ساعدني النهج المنظم والاهتمام الشخصي على التحسن من A2 إلى B2 في 6 أشهر فقط. كانت الجلسات المباشرة قيّمة للغاية!",
+        "معلم رائع! الدعم ثنائي اللغة جعل التعلم أسهل بكثير. أخيرًا أشعر بالثقة في التحدث بالإنجليزية في العمل.",
+        "مواد الدورة ممتازة والمنصة سهلة الاستخدام جدًا. أحب أن أتمكن من التعلم بالسرعة التي تناسبني.",
+      ],
+    },
+    cta: {
+      title: "هل أنت مستعد لإطلاق رحلتك في تعلم الإنجليزية؟",
+      subtitle: "انضم إلى مئات الطلاب الناجحين الذين حوّلوا مهاراتهم في الإنجليزية وحققوا أحلامهم.",
+      trial: "ابدأ التجربة المجانية",
+      consult: "حدد موعد استشارة",
+    },
+    footer: {
+      description: "تمكين الطلاب من تحقيق الطلاقة في الإنجليزية من خلال التعلم المخصص والتوجيه المتخصص والمنهجيات المثبتة.",
+      quickLinks: "روابط سريعة",
+      contactInfo: "معلومات الاتصال",
+      copyright: "© 2024 To The Moon With English. جميع الحقوق محفوظة.",
+    },
+  },
+} as const;
+
+export type Language = keyof typeof translations;
+export type Translations = (typeof translations)[Language];

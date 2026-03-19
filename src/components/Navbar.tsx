@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Globe } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
+import logo from "@/assets/logo.jpeg";
 
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -20,16 +21,9 @@ const Navbar = () => {
   return (
     <header className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b border-border">
       <div className="container mx-auto flex items-center justify-between h-16 px-4">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-            <span className="text-primary-foreground font-bold text-sm">🌙</span>
-          </div>
-          <div className="leading-tight">
-            <span className="font-bold text-foreground text-sm">To The Moon</span>
-            <br />
-            <span className="text-muted-foreground text-xs">With English</span>
-          </div>
-        </div>
+        <Link to="/" className="flex items-center gap-2">
+          <img src={logo} alt="To The Moon With English" className="h-10 w-auto rounded-lg" />
+        </Link>
 
         <nav className="hidden md:flex items-center gap-8">
           {navLinks.map((link) => (

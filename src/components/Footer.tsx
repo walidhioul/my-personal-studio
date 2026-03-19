@@ -12,9 +12,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-10">
           <div>
             <div className="flex items-center gap-2 mb-3">
-              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-                <span className="text-primary-foreground text-sm">🌙</span>
-              </div>
+              <img src={logo} alt="To The Moon With English" className="h-12 w-auto rounded-lg" />
             </div>
             <p className="text-sm text-background/60 max-w-xs">{t.footer.description}</p>
           </div>

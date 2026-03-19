@@ -1,23 +1,51 @@
+import { useEffect, useState } from "react";
 import { useLanguage } from "@/i18n/LanguageContext";
+import { getFeedbacks } from "@/api/auth";
 
-const avatars = ["👩", "👨", "👩‍💼"];
+interface Feedback {
+  id: number;
+  name: string;
+  message: string;
+  avatar?: string;
+}
 
 const Testimonials = () => {
   const { t } = useLanguage();
+  const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getFeedbacks()
+      .then((res) => setFeedbacks(res.data))
+      .catch(() => setFeedbacks([]))
+      .finally(() => setLoading(false));
+  }, []);
 
   return (
     <section className="py-20">
       <div className="container mx-auto px-4 text-center">
         <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-3">{t.testimonials.title}</h2>
         <p className="text-muted-foreground max-w-lg mx-auto mb-14">{t.testimonials.subtitle}</p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {t.testimonials.items.map((text, i) => (
-            <div key={i} className="bg-card border border-border rounded-xl p-6 text-start hover:shadow-lg transition-shadow">
-              <p className="text-sm text-muted-foreground mb-6 italic">"{text}"</p>
-              <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center text-lg">{avatars[i]}</div>
-            </div>
-          ))}
-        </div>
+
+        {loading ? (
+          <p className="text-muted-foreground">Loading...</p>
+        ) : feedbacks.length === 0 ? (
+          <p className="text-muted-foreground">No feedbacks yet.</p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {feedbacks.map((fb) => (
+              <div key={fb.id} className="bg-card border border-border rounded-xl p-6 text-start hover:shadow-lg transition-shadow">
+                <p className="text-sm text-muted-foreground mb-6 italic">"{fb.message}"</p>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center text-lg">
+                    {fb.avatar || fb.name.charAt(0).toUpperCase()}
+                  </div>
+                  <span className="text-sm font-medium text-foreground">{fb.name}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

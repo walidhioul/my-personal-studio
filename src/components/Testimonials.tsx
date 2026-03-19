@@ -4,9 +4,21 @@ import { getFeedbacks } from "@/api/auth";
 
 interface Feedback {
   id: number;
-  name: string;
-  message: string;
-  avatar?: string;
+  user_id: number;
+  course_id: number;
+  rating: number;
+  comment: string;
+  is_approved: boolean;
+  course: {
+    id: number;
+    title: string;
+    slug: string;
+    description: string;
+    thumbnail: string | null;
+    picture: string | null;
+    price: number;
+    level: string;
+  };
 }
 
 const Testimonials = () => {
@@ -16,7 +28,7 @@ const Testimonials = () => {
 
   useEffect(() => {
     getFeedbacks()
-      .then((res) => setFeedbacks(res.data))
+      .then((res) => setFeedbacks(res.data.data))
       .catch(() => setFeedbacks([]))
       .finally(() => setLoading(false));
   }, []);
@@ -35,12 +47,12 @@ const Testimonials = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {feedbacks.map((fb) => (
               <div key={fb.id} className="bg-card border border-border rounded-xl p-6 text-start hover:shadow-lg transition-shadow">
-                <p className="text-sm text-muted-foreground mb-6 italic">"{fb.message}"</p>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center text-lg">
-                    {fb.avatar || fb.name.charAt(0).toUpperCase()}
-                  </div>
-                  <span className="text-sm font-medium text-foreground">{fb.name}</span>
+                <p className="text-sm text-muted-foreground mb-4 italic">"{fb.comment}"</p>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium text-primary">{fb.course.title} — {fb.course.level}</span>
+                  {fb.rating > 0 && (
+                    <span className="text-xs text-muted-foreground">⭐ {fb.rating}</span>
+                  )}
                 </div>
               </div>
             ))}

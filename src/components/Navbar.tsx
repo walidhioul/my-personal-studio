@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Globe } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
+import logo from "@/assets/logo.jpeg";
 
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);

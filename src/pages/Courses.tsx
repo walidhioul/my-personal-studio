@@ -146,9 +146,11 @@ const Courses = () => {
                       </div>
                     </div>
 
-                    <Button className="w-full" size="sm">
-                      {lang === "en" ? "View Details" : "عرض التفاصيل"}
+
+                    <Button className="w-full" size="sm" asChild>
+                      <Link to={`/courses/${course.id}`}>{lang === "en" ? "View Details" : "عرض التفاصيل"}</Link>
                     </Button>
+
                   </div>
                 </div>
               ))}

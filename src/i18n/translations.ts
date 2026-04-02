@@ -60,7 +60,7 @@ export const translations = {
       description: "Empowering students to achieve English fluency through personalized learning, expert guidance, and proven methodologies.",
       quickLinks: "Quick Links",
       contactInfo: "Contact Info",
-      copyright: "© 2024 To The Moon With English. All rights reserved.",
+      copyright: "© 2026 To The Moon With English. All rights reserved.",
     },
     auth: {
       loginTitle: "Welcome Back",
@@ -147,7 +147,7 @@ export const translations = {
       description: "تمكين الطلاب من تحقيق الطلاقة في الإنجليزية من خلال التعلم المخصص والتوجيه المتخصص والمنهجيات المثبتة.",
       quickLinks: "روابط سريعة",
       contactInfo: "معلومات الاتصال",
-      copyright: "© 2024 To The Moon With English. جميع الحقوق محفوظة.",
+      copyright: "© 2026  To The Moon With English. جميع الحقوق محفوظة.",
     },
     auth: {
       loginTitle: "مرحبًا بعودتك",

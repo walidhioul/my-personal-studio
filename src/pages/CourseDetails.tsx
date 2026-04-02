@@ -112,8 +112,10 @@ const CourseDetails = () => {
                   <span className="font-medium text-foreground">8-12</span>
                 </div>
               </div>
-              <Button className="w-full" size="lg">
-                {lang === "en" ? "Enroll Now" : "سجّل الآن"}
+              <Button className="w-full" size="lg" asChild>
+                <Link to={`/courses/${course.id}/learn`}>
+                  {lang === "en" ? "Start Learning" : "ابدأ التعلم"}
+                </Link>
               </Button>
               <p className="text-xs text-muted-foreground text-center mt-3">
                 {lang === "en" ? "30-day money back guarantee" : "ضمان استرداد الأموال خلال 30 يومًا"}

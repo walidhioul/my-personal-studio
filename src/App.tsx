@@ -15,6 +15,9 @@ import PlacementTest from "./pages/PlacementTest";
 import QuizResult from "./pages/QuizResult";
 import Courses from "./pages/Courses";
 import NotFound from "./pages/NotFound";
+import Dashboard from "./pages/Dashboard";
+import CoursePlayer from "./pages/CoursePlayer";
+
 
 const queryClient = new QueryClient();
 
@@ -31,9 +34,11 @@ const App = () => (
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/placement-test" element={<PlacementTest />} />
+              <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/result" element={<QuizResult />} />
               <Route path="/courses" element={<Courses />} />
                <Route path="/courses/:id" element={<CourseDetails />} />
+               <Route path="/courses/:id/learn" element={<CoursePlayer />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

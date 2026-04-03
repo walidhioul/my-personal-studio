@@ -3,8 +3,8 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { CEFRLevel, levelColors, levelTextColors } from "@/data/quizData";
-import { allCourses } from "@/data/coursesData";
-import { Clock, Star, Users, BookOpen, Award } from "lucide-react";
+import { useCourses } from "@/hooks/useCourses";
+import { Clock, Star, BookOpen, Award, Loader2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
@@ -23,6 +23,7 @@ const levelSubtitles = {
 const Courses = () => {
   const { lang } = useLanguage();
   const [userLevel, setUserLevel] = useState<CEFRLevel | null>(null);
+  const { data: courses, isLoading, error } = useCourses();
 
   useEffect(() => {
     const stored = localStorage.getItem("quizResult");
@@ -32,13 +33,16 @@ const Courses = () => {
     }
   }, []);
 
-  // Group courses by level
-  const coursesByLevel: Partial<Record<CEFRLevel, typeof allCourses>> = {};
-  const displayCourses = userLevel ? allCourses.filter((c) => c.level === userLevel) : allCourses;
+  const displayCourses = userLevel
+    ? (courses || []).filter((c) => c.level === userLevel)
+    : (courses || []);
 
+  // Group courses by level
+  const coursesByLevel: Partial<Record<CEFRLevel, typeof displayCourses>> = {};
   displayCourses.forEach((c) => {
-    if (!coursesByLevel[c.level]) coursesByLevel[c.level] = [];
-    coursesByLevel[c.level]!.push(c);
+    const lvl = c.level as CEFRLevel;
+    if (!coursesByLevel[lvl]) coursesByLevel[lvl] = [];
+    coursesByLevel[lvl]!.push(c);
   });
 
   const displayLevels = levelOrder.filter((lv) => coursesByLevel[lv]);
@@ -55,24 +59,9 @@ const Courses = () => {
           </h1>
           <p className="text-primary-foreground/70 max-w-xl mx-auto mb-8">
             {lang === "en"
-              ? "Choose the perfect course for your English learning journey. From beginner to advanced levels, structured to help you reach fluency."
-              : "اختر الدورة المثالية لرحلتك في تعلم الإنجليزية. من المبتدئ إلى المتقدم، مصممة لمساعدتك على الوصول للطلاقة."}
+              ? "Choose the perfect course for your English learning journey."
+              : "اختر الدورة المثالية لرحلتك في تعلم الإنجليزية."}
           </p>
-
-          <div className="flex justify-center gap-8">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-primary-foreground">150+</div>
-              <div className="text-primary-foreground/60 text-sm">{lang === "en" ? "Students" : "طالب"}</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-primary-foreground">12</div>
-              <div className="text-primary-foreground/60 text-sm">{lang === "en" ? "Course Levels" : "مستوى"}</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-primary-foreground">4.9</div>
-              <div className="text-primary-foreground/60 text-sm">{lang === "en" ? "Rating" : "التقييم"}</div>
-            </div>
-          </div>
 
           {userLevel && (
             <div className="mt-6 inline-flex items-center gap-2 bg-primary-foreground/10 rounded-full px-4 py-2 text-primary-foreground text-sm">
@@ -102,7 +91,19 @@ const Courses = () => {
 
       {/* Course Sections */}
       <main className="flex-1 container mx-auto px-4 py-16">
-        {displayLevels.map((level) => (
+        {isLoading && (
+          <div className="flex justify-center py-20">
+            <Loader2 className="animate-spin text-primary" size={40} />
+          </div>
+        )}
+
+        {error && (
+          <div className="text-center py-20 text-destructive">
+            {lang === "en" ? "Failed to load courses. Please try again." : "فشل تحميل الدورات. يرجى المحاولة مرة أخرى."}
+          </div>
+        )}
+
+        {!isLoading && !error && displayLevels.map((level) => (
           <section key={level} className="mb-16 last:mb-0">
             <div className="text-center mb-10">
               <div className="inline-flex items-center gap-2 mb-2">
@@ -119,38 +120,37 @@ const Courses = () => {
                 <div key={course.id} className="bg-card border border-border rounded-xl overflow-hidden hover:shadow-lg transition-shadow group">
                   <div className="h-44 overflow-hidden">
                     <img
-                      src={course.image}
-                      alt={course.title[lang]}
+                      src={course.thumbnail || course.picture || "/placeholder.svg"}
+                      alt={course.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       loading="lazy"
                     />
                   </div>
                   <div className="p-5">
                     <div className="flex items-center justify-between mb-2">
-                      <span className={`text-xs font-bold ${levelTextColors[course.level]}`}>{course.level}</span>
-                      <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                        <Star size={12} className="fill-yellow-400 text-yellow-400" />
-                        ({course.rating})
-                      </span>
+                      <span className={`text-xs font-bold ${levelTextColors[course.level as CEFRLevel]}`}>{course.level}</span>
+                      {course.rating && (
+                        <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <Star size={12} className="fill-yellow-400 text-yellow-400" />
+                          ({course.rating})
+                        </span>
+                      )}
                     </div>
-                    <h3 className="font-semibold text-foreground mb-1.5">{course.title[lang]}</h3>
-                    <p className="text-xs text-muted-foreground mb-4 line-clamp-2">{course.desc[lang]}</p>
+                    <h3 className="font-semibold text-foreground mb-1.5">{course.title}</h3>
+                    <p className="text-xs text-muted-foreground mb-4 line-clamp-2">{course.description}</p>
 
                     <div className="flex items-center justify-between mb-4">
-                      <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                        <Clock size={12} /> {course.weeks} {lang === "en" ? "weeks" : "أسبوع"}
-                      </span>
-                      <div className="text-end">
-                        <span className="font-bold text-foreground">${course.price}</span>
-                        <span className="text-xs text-muted-foreground ms-1">${course.perLesson}/{lang === "en" ? "lesson" : "درس"}</span>
-                      </div>
+                      {course.duration && (
+                        <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <Clock size={12} /> {course.duration} {lang === "en" ? "weeks" : "أسبوع"}
+                        </span>
+                      )}
+                      <span className="font-bold text-foreground">${course.price}</span>
                     </div>
-
 
                     <Button className="w-full" size="sm" asChild>
                       <Link to={`/courses/${course.id}`}>{lang === "en" ? "View Details" : "عرض التفاصيل"}</Link>
                     </Button>
-
                   </div>
                 </div>
               ))}
@@ -165,16 +165,8 @@ const Courses = () => {
           <h2 className="text-2xl md:text-3xl font-bold text-primary-foreground mb-3">
             {lang === "en" ? "Ready to Start Your English Journey?" : "هل أنت مستعد لبدء رحلتك في تعلم الإنجليزية؟"}
           </h2>
-          <p className="text-primary-foreground/70 max-w-lg mx-auto mb-8">
-            {lang === "en"
-              ? "Book a free consultation to find the perfect course for your goals and current level."
-              : "احجز استشارة مجانية لإيجاد الدورة المثالية لأهدافك ومستواك الحالي."}
-          </p>
-          <div className="flex flex-wrap justify-center gap-4">
+          <div className="flex flex-wrap justify-center gap-4 mt-6">
             <Button variant="secondary" size="lg">{lang === "en" ? "Book Free Consultation" : "احجز استشارة مجانية"}</Button>
-            <Button size="lg" variant="outline" className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10">
-              {lang === "en" ? "View All Courses" : "عرض جميع الدورات"}
-            </Button>
           </div>
         </div>
       </section>

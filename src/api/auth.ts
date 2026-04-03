@@ -1,47 +1,46 @@
-import { BASE_URL } from "../config/api";
+import { BASE_URL } from "@/config/api";
 import { User, LoginData, RegisterData } from "../types/auth";
 
-// Get CSRF cookie
 export async function getCsrfCookie() {
   await fetch(`${BASE_URL}/sanctum/csrf-cookie`, { credentials: "include" });
 }
 
-// Login
 export async function login(data: LoginData): Promise<User> {
   await getCsrfCookie();
-
   const res = await fetch(`${BASE_URL}/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",
     body: JSON.stringify(data),
   });
-
-  // 👇 READ ONLY ONCE
   const text = await res.text();
-  console.log("SERVER RESPONSE:", text);
-
-  if (!res.ok) {
-    throw new Error("Login failed");
+  if (!res.ok) throw new Error("Login failed");
+  const parsed = JSON.parse(text);
+  // Store token if returned
+  if (parsed.token) {
+    localStorage.setItem("auth_token", parsed.token);
   }
-
-  // 👇 convert manually
-  return JSON.parse(text);
+  return parsed;
 }
-// Get current user
+
 export async function getUser(): Promise<User> {
-  const res = await fetch(`${BASE_URL}/auth/me`, { credentials: "include" });
+  const headers: HeadersInit = { Accept: "application/json" };
+  const token = localStorage.getItem("auth_token");
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+  const res = await fetch(`${BASE_URL}/auth/me`, { credentials: "include", headers });
   if (!res.ok) throw new Error("Not authenticated");
   return res.json();
 }
 
-// Logout
 export async function logout() {
-  const res = await fetch(`${BASE_URL}/auth/logout`, { method: "POST", credentials: "include" });
+  const headers: HeadersInit = { Accept: "application/json" };
+  const token = localStorage.getItem("auth_token");
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+  const res = await fetch(`${BASE_URL}/auth/logout`, { method: "POST", credentials: "include", headers });
+  localStorage.removeItem("auth_token");
   if (!res.ok) throw new Error("Logout failed");
 }
 
-// Register
 export async function register(data: RegisterData): Promise<User> {
   await getCsrfCookie();
   const res = await fetch(`${BASE_URL}/auth/register`, {
@@ -50,11 +49,13 @@ export async function register(data: RegisterData): Promise<User> {
     credentials: "include",
     body: JSON.stringify(data),
   });
-
   if (!res.ok) {
     const err = await res.json();
     throw new Error(err.message || "Registration failed");
   }
-
-  return res.json();
+  const parsed = await res.json();
+  if (parsed.token) {
+    localStorage.setItem("auth_token", parsed.token);
+  }
+  return parsed;
 }

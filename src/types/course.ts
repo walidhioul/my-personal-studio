@@ -35,7 +35,6 @@ export interface DashboardData {
     id: number;
     title: string;
     level: string;
-    progress: number;
   }[];
   stats: {
     total_courses: number;

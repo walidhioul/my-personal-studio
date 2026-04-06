@@ -2,10 +2,10 @@ import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { useCourse } from "@/hooks/useCourses";
-import { useProgress } from "@/hooks/useProgress";
+
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Progress } from "@/components/ui/progress";
+
 import {
   ArrowLeft, ArrowRight, Play, CheckCircle2, Circle,
   ChevronLeft, ChevronRight, Menu, X, Clock, ListVideo, Loader2,
@@ -16,7 +16,7 @@ const CoursePlayer = () => {
   const { lang } = useLanguage();
   const isRtl = lang === "ar";
   const { data: course, isLoading } = useCourse(id || "");
-  const progressMutation = useProgress();
+  
 
   const [activeLesson, setActiveLesson] = useState(0);
   const [completedLessons, setCompletedLessons] = useState<Set<number>>(new Set());
@@ -47,7 +47,7 @@ const CoursePlayer = () => {
 
   const lessons = course.lessons || [];
   const currentLesson = lessons[activeLesson];
-  const progress = lessons.length > 0 ? Math.round((completedLessons.size / lessons.length) * 100) : 0;
+  
 
   const toggleComplete = (lessonId: number) => {
     setCompletedLessons((prev) => {
@@ -61,7 +61,7 @@ const CoursePlayer = () => {
   const goNext = () => {
     if (activeLesson < lessons.length - 1 && currentLesson) {
       setCompletedLessons((prev) => new Set(prev).add(currentLesson.id));
-      progressMutation.mutate({ course_id: course.id, lesson_id: currentLesson.id });
+      
       setActiveLesson(activeLesson + 1);
     }
   };
@@ -80,10 +80,6 @@ const CoursePlayer = () => {
         </Link>
         <div className="h-5 w-px bg-border" />
         <h1 className="text-sm font-semibold text-foreground truncate flex-1">{course.title}</h1>
-        <div className="hidden sm:flex items-center gap-2 text-xs text-muted-foreground">
-          <Progress value={progress} className="w-24 h-2" />
-          <span>{progress}%</span>
-        </div>
         <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setSidebarOpen(!sidebarOpen)}>
           {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
         </Button>
@@ -148,8 +144,6 @@ const CoursePlayer = () => {
                   <X size={14} />
                 </Button>
               </div>
-              <p className="text-xs text-muted-foreground">{completedLessons.size} / {lessons.length} {lang === "en" ? "completed" : "مكتمل"}</p>
-              <Progress value={progress} className="h-1.5 mt-2" />
             </div>
 
             <ScrollArea className="flex-1">

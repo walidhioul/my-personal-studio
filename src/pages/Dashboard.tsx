@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { Progress } from "@/components/ui/progress";
+
 import {
   BookOpen, MessageSquare, User, BarChart3, Clock, Award, Star, Send, LogOut, Loader2,
 } from "lucide-react";
@@ -148,10 +148,6 @@ const Dashboard = () => {
                             <div className="flex items-center gap-2 mb-2">
                               <h3 className="font-semibold text-foreground">{course.title}</h3>
                               <Badge variant="secondary">{course.level}</Badge>
-                            </div>
-                            <div className="flex items-center gap-3">
-                              <Progress value={course.progress} className="flex-1 h-2" />
-                              <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">{course.progress}%</span>
                             </div>
                           </div>
                           <Button variant="outline" size="sm" onClick={() => navigate(`/courses/${course.id}/learn`)}>

@@ -2,22 +2,51 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/i18n/LanguageContext";
-import { CEFRLevel, levelColors, levelTextColors } from "@/data/quizData";
+import { CEFRLevel } from "@/data/quizData";
 import { useCourses } from "@/hooks/useCourses";
 import { Clock, Star, BookOpen, Award, Loader2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { resolveAsset } from "@/config/api";
 
-const levelOrder: CEFRLevel[] = ["A1", "A2", "B1", "B2", "C1", "C2"];
+type ApiLevel = "Beginner" | "Intermediate" | "Advanced";
+const levelOrder: ApiLevel[] = ["Beginner", "Intermediate", "Advanced"];
+
+const levelBadgeColor: Record<ApiLevel, string> = {
+  Beginner: "bg-green-500",
+  Intermediate: "bg-blue-500",
+  Advanced: "bg-purple-500",
+};
+
+const levelTextColor: Record<ApiLevel, string> = {
+  Beginner: "text-green-600",
+  Intermediate: "text-blue-600",
+  Advanced: "text-purple-600",
+};
 
 const levelTitles = {
-  en: { A1: "A1 – Beginner Level", A2: "A2 – Elementary Level", B1: "B1 – Intermediate Level", B2: "B2 – Upper Intermediate", C1: "C1 – Advanced Level", C2: "C2 – Proficiency Level" },
-  ar: { A1: "A1 – مستوى المبتدئ", A2: "A2 – المستوى الأساسي", B1: "B1 – المستوى المتوسط", B2: "B2 – فوق المتوسط", C1: "C1 – المستوى المتقدم", C2: "C2 – مستوى الإتقان" },
+  en: { Beginner: "Beginner Level", Intermediate: "Intermediate Level", Advanced: "Advanced Level" },
+  ar: { Beginner: "المستوى المبتدئ", Intermediate: "المستوى المتوسط", Advanced: "المستوى المتقدم" },
 };
 
 const levelSubtitles = {
-  en: { A1: "Start your English journey with fundamental skills", A2: "Build on basics with everyday communication", B1: "Handle most situations with growing confidence", B2: "Communicate fluently in complex contexts", C1: "Express yourself with precision and nuance", C2: "Achieve near-native mastery" },
-  ar: { A1: "ابدأ رحلتك الإنجليزية بالمهارات الأساسية", A2: "ابنِ على الأساسيات مع التواصل اليومي", B1: "تعامل مع معظم المواقف بثقة متزايدة", B2: "تواصل بطلاقة في سياقات معقدة", C1: "عبّر عن نفسك بدقة وتفصيل", C2: "حقق إتقانًا شبيهًا بالمتحدثين الأصليين" },
+  en: {
+    Beginner: "Start your English journey with fundamental skills",
+    Intermediate: "Build confidence in everyday and work communication",
+    Advanced: "Express yourself fluently with precision and nuance",
+  },
+  ar: {
+    Beginner: "ابدأ رحلتك الإنجليزية بالمهارات الأساسية",
+    Intermediate: "ابنِ ثقتك في التواصل اليومي والمهني",
+    Advanced: "عبّر عن نفسك بطلاقة ودقة",
+  },
+};
+
+// Map CEFR placement-test result to backend's level grouping
+const cefrToApiLevel: Record<CEFRLevel, ApiLevel> = {
+  A1: "Beginner", A2: "Beginner",
+  B1: "Intermediate", B2: "Intermediate",
+  C1: "Advanced", C2: "Advanced",
 };
 
 const Courses = () => {
@@ -33,19 +62,21 @@ const Courses = () => {
     }
   }, []);
 
-  const displayCourses = userLevel
-    ? (courses || []).filter((c) => c.level === userLevel)
+  const mappedLevel = userLevel ? cefrToApiLevel[userLevel] : null;
+
+  const displayCourses = mappedLevel
+    ? (courses || []).filter((c) => c.level === mappedLevel)
     : (courses || []);
 
-  // Group courses by level
-  const coursesByLevel: Partial<Record<CEFRLevel, typeof displayCourses>> = {};
+  const coursesByLevel: Partial<Record<ApiLevel, typeof displayCourses>> = {};
   displayCourses.forEach((c) => {
-    const lvl = c.level as CEFRLevel;
+    const lvl = c.level as ApiLevel;
+    if (!levelOrder.includes(lvl)) return;
     if (!coursesByLevel[lvl]) coursesByLevel[lvl] = [];
     coursesByLevel[lvl]!.push(c);
   });
 
-  const displayLevels = levelOrder.filter((lv) => coursesByLevel[lv]);
+  const displayLevels = levelOrder.filter((lv) => coursesByLevel[lv]?.length);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -103,11 +134,17 @@ const Courses = () => {
           </div>
         )}
 
+        {!isLoading && !error && displayCourses.length === 0 && (
+          <div className="text-center py-20 text-muted-foreground">
+            {lang === "en" ? "No courses available yet." : "لا توجد دورات متاحة حتى الآن."}
+          </div>
+        )}
+
         {!isLoading && !error && displayLevels.map((level) => (
           <section key={level} className="mb-16 last:mb-0">
             <div className="text-center mb-10">
               <div className="inline-flex items-center gap-2 mb-2">
-                <div className={`w-8 h-8 rounded-lg ${levelColors[level]} flex items-center justify-center`}>
+                <div className={`w-8 h-8 rounded-lg ${levelBadgeColor[level]} flex items-center justify-center`}>
                   <span className="text-white text-xs font-bold">✓</span>
                 </div>
                 <h2 className="text-2xl font-bold text-foreground">{levelTitles[lang][level]}</h2>
@@ -118,17 +155,18 @@ const Courses = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {coursesByLevel[level]!.map((course) => (
                 <div key={course.id} className="bg-card border border-border rounded-xl overflow-hidden hover:shadow-lg transition-shadow group">
-                  <div className="h-44 overflow-hidden">
+                  <div className="h-44 overflow-hidden bg-muted">
                     <img
-                      src={course.thumbnail || course.picture || "/placeholder.svg"}
+                      src={resolveAsset(course.thumbnail || course.picture)}
                       alt={course.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       loading="lazy"
+                      onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/placeholder.svg"; }}
                     />
                   </div>
                   <div className="p-5">
                     <div className="flex items-center justify-between mb-2">
-                      <span className={`text-xs font-bold ${levelTextColors[course.level as CEFRLevel]}`}>{course.level}</span>
+                      <span className={`text-xs font-bold ${levelTextColor[course.level as ApiLevel] || "text-muted-foreground"}`}>{course.level}</span>
                       {course.rating && (
                         <span className="flex items-center gap-1 text-xs text-muted-foreground">
                           <Star size={12} className="fill-yellow-400 text-yellow-400" />
@@ -136,7 +174,7 @@ const Courses = () => {
                         </span>
                       )}
                     </div>
-                    <h3 className="font-semibold text-foreground mb-1.5">{course.title}</h3>
+                    <h3 className="font-semibold text-foreground mb-1.5 line-clamp-1">{course.title}</h3>
                     <p className="text-xs text-muted-foreground mb-4 line-clamp-2">{course.description}</p>
 
                     <div className="flex items-center justify-between mb-4">
@@ -145,7 +183,9 @@ const Courses = () => {
                           <Clock size={12} /> {course.duration} {lang === "en" ? "weeks" : "أسبوع"}
                         </span>
                       )}
-                      <span className="font-bold text-foreground">${course.price}</span>
+                      <span className="font-bold text-foreground">
+                        {Number(course.price) === 0 ? (lang === "en" ? "Free" : "مجاني") : `$${course.price}`}
+                      </span>
                     </div>
 
                     <Button className="w-full" size="sm" asChild>

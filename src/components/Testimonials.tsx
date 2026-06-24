@@ -17,7 +17,10 @@ const Testimonials = () => {
           .slice(0, 6);
         setFeedbacks(approvedFeedbacks);
       })
-      .catch(() => setFeedbacks([]))
+      .catch((err) => {
+  console.error("Feedbacks fetch failed:", err); 
+  setFeedbacks([]);
+})
       .finally(() => setLoading(false));
   }, []);
 

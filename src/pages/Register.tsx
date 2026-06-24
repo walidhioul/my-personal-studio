@@ -1,26 +1,51 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { Globe, Eye, EyeOff } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 const Register = () => {
   const { t, lang, setLang } = useLanguage();
+  const { register } = useAuth();
+  const navigate = useNavigate();
+
   const [showPassword, setShowPassword] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
+
+    if (password !== passwordConfirm) {
+      setError("Passwords do not match");
+      return;
+    }
+
     setLoading(true);
-    // TODO: Connect to your Laravel backend
-    // Example: await fetch('https://your-api.com/api/register', { method: 'POST', body: JSON.stringify({ name, email, password, password_confirmation: passwordConfirm }) })
-    console.log("Register submitted:", { name, email, password, passwordConfirm });
-    setLoading(false);
+    try {
+      await register({
+        name,
+        email,
+        password,
+        password_confirmation: passwordConfirm,
+      });
+      navigate("/dashboard");
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Registration failed. Please try again.");
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -65,6 +90,12 @@ const Register = () => {
               <h1 className="text-2xl font-bold text-foreground">{t.auth.registerTitle}</h1>
               <p className="text-muted-foreground mt-2 text-sm">{t.auth.registerSubtitle}</p>
             </div>
+
+            {error && (
+              <div className="bg-destructive/10 text-destructive text-sm px-4 py-3 rounded-lg border border-destructive/20">
+                {error}
+              </div>
+            )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">

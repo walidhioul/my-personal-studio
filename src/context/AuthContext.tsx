@@ -17,33 +17,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Fetch current user on mount
+  // Only call /auth/me on mount if a token already exists
   useEffect(() => {
+    const token = localStorage.getItem("auth_token");
+    if (!token) {
+      setLoading(false);
+      return;
+    }
     refreshUser().finally(() => setLoading(false));
   }, []);
 
-  // Fetch /auth/me to get current user
+  // Fetch /auth/me to rehydrate session (e.g. on page refresh)
   const refreshUser = async () => {
-    try {
-      const currentUser = await authApi.getUser();
-      setUser(currentUser);
-    } catch {
-      setUser(null);
-    }
+    const currentUser = await authApi.getUser(); // never throws, returns null on failure
+    setUser(currentUser);
   };
 
-  // Login function
+  // Set user directly from login response — no extra /auth/me round trip needed
   const login = async (data: LoginData) => {
     try {
-      await authApi.login(data);
-      await refreshUser(); // update user after login
+      const user = await authApi.login(data);
+      setUser(user);
     } catch (err: unknown) {
       if (err instanceof Error) throw new Error(err.message);
       throw new Error("Login failed");
     }
   };
 
-  // Logout function
   const logout = async () => {
     try {
       await authApi.logout();
@@ -54,11 +54,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Register function
+  // Set user directly from register response — no extra /auth/me round trip needed
   const register = async (data: RegisterData) => {
     try {
-      await authApi.register(data);
-      await refreshUser(); // update user after registration
+      const user = await authApi.register(data);
+      setUser(user);
     } catch (err: unknown) {
       if (err instanceof Error) throw new Error(err.message);
       throw new Error("Registration failed");
@@ -72,7 +72,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-// Hook to access AuthContext in components
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) throw new Error("useAuth must be used within AuthProvider");

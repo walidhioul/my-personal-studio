@@ -12,29 +12,19 @@ export async function login(data: LoginData): Promise<User> {
   });
   const parsed = await res.json();
   if (!res.ok) throw new Error(parsed.message || "Login failed");
-  if (parsed.data?.access_token) localStorage.setItem("auth_token", parsed.data.access_token);
-  return parsed.data.user;
+  if (parsed.token) localStorage.setItem("auth_token", parsed.token);
+  return parsed.user;
 }
 
-export async function getUser(): Promise<User | null> {
+export async function getUser(): Promise<User> {
   const token = localStorage.getItem("auth_token");
-
-  // No token = no request, return null quietly
-  if (!token) return null;
-
   const res = await fetch(`${BASE_URL}/auth/me`, {
     headers: {
       Accept: "application/json",
-      Authorization: `Bearer ${token}`,
+      ...(token && { Authorization: `Bearer ${token}` }),
     },
   });
-
-  if (!res.ok) {
-    // Token is invalid or expired, clean it up
-    if (res.status === 401) localStorage.removeItem("auth_token");
-    return null; // quiet failure, no throw, no redirect
-  }
-
+  if (!res.ok) throw new Error("Not authenticated");
   return res.json();
 }
 
@@ -61,6 +51,6 @@ export async function register(data: RegisterData): Promise<User> {
   });
   const parsed = await res.json();
   if (!res.ok) throw new Error(parsed.message || "Registration failed");
-  if (parsed.data?.access_token) localStorage.setItem("auth_token", parsed.data.access_token);
-  return parsed.data.user;
+  if (parsed.token) localStorage.setItem("auth_token", parsed.token);
+  return parsed.user;
 }

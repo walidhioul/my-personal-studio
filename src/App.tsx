@@ -17,6 +17,13 @@ import Courses from "./pages/Courses";
 import NotFound from "./pages/NotFound";
 import Dashboard from "./pages/Dashboard";
 import CoursePlayer from "./pages/CoursePlayer";
+import AdminRoute from "./components/AdminRoute";
+import AdminLayout from "./pages/admin/AdminLayout";
+import AdminOverview from "./pages/admin/AdminOverview";
+import AdminUsers from "./pages/admin/AdminUsers";
+import AdminCourses from "./pages/admin/AdminCourses";
+import AdminEnrollments from "./pages/admin/AdminEnrollments";
+import AdminFeedbacks from "./pages/admin/AdminFeedbacks";
 
 
 const queryClient = new QueryClient();

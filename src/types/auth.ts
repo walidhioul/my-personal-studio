@@ -2,7 +2,9 @@ export interface User {
   id: number;
   name: string;
   email: string;
-  // add any other fields returned by /auth/me
+  role?: "admin" | "student" | string;
+  is_active?: boolean;
+  created_at?: string;
 }
 
 export interface LoginData {

@@ -46,6 +46,20 @@ const App = () => (
               <Route path="/courses" element={<Courses />} />
                <Route path="/courses/:id" element={<CourseDetails />} />
                <Route path="/courses/:id/learn" element={<CoursePlayer />} />
+              <Route
+                path="/admin"
+                element={
+                  <AdminRoute>
+                    <AdminLayout />
+                  </AdminRoute>
+                }
+              >
+                <Route index element={<AdminOverview />} />
+                <Route path="users" element={<AdminUsers />} />
+                <Route path="courses" element={<AdminCourses />} />
+                <Route path="enrollments" element={<AdminEnrollments />} />
+                <Route path="feedbacks" element={<AdminFeedbacks />} />
+              </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

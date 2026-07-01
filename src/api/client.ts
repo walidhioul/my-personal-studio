@@ -7,15 +7,11 @@ class ApiClient {
     this.baseUrl = baseUrl;
   }
 
-  private getHeaders(): HeadersInit {
-    const headers: HeadersInit = {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    };
+  private getHeaders(hasBody: boolean = true): HeadersInit {
+    const headers: HeadersInit = { Accept: "application/json" };
+    if (hasBody) headers["Content-Type"] = "application/json";
     const token = localStorage.getItem("auth_token");
-    if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
-    }
+    if (token) headers["Authorization"] = `Bearer ${token}`;
     return headers;
   }
 
@@ -25,9 +21,9 @@ class ApiClient {
       window.location.href = "/login";
       throw new Error("Unauthorized");
     }
-    if (res.status === 404) {
-      throw new Error("Not found");
-    }
+    if (res.status === 403) throw new Error("Forbidden");
+    if (res.status === 404) throw new Error("Not found");
+    if (res.status === 204) return undefined as T;
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
       throw new Error(body.message || `Request failed (${res.status})`);
@@ -38,7 +34,7 @@ class ApiClient {
   async get<T>(endpoint: string): Promise<T> {
     const res = await fetch(`${this.baseUrl}${endpoint}`, {
       method: "GET",
-      headers: this.getHeaders(),
+      headers: this.getHeaders(false),
       credentials: "include",
     });
     return this.handleResponse<T>(res);
@@ -47,9 +43,38 @@ class ApiClient {
   async post<T>(endpoint: string, data?: unknown): Promise<T> {
     const res = await fetch(`${this.baseUrl}${endpoint}`, {
       method: "POST",
-      headers: this.getHeaders(),
+      headers: this.getHeaders(true),
       credentials: "include",
       body: data ? JSON.stringify(data) : undefined,
+    });
+    return this.handleResponse<T>(res);
+  }
+
+  async put<T>(endpoint: string, data?: unknown): Promise<T> {
+    const res = await fetch(`${this.baseUrl}${endpoint}`, {
+      method: "PUT",
+      headers: this.getHeaders(true),
+      credentials: "include",
+      body: data ? JSON.stringify(data) : undefined,
+    });
+    return this.handleResponse<T>(res);
+  }
+
+  async patch<T>(endpoint: string, data?: unknown): Promise<T> {
+    const res = await fetch(`${this.baseUrl}${endpoint}`, {
+      method: "PATCH",
+      headers: this.getHeaders(true),
+      credentials: "include",
+      body: data ? JSON.stringify(data) : undefined,
+    });
+    return this.handleResponse<T>(res);
+  }
+
+  async delete<T>(endpoint: string): Promise<T> {
+    const res = await fetch(`${this.baseUrl}${endpoint}`, {
+      method: "DELETE",
+      headers: this.getHeaders(false),
+      credentials: "include",
     });
     return this.handleResponse<T>(res);
   }

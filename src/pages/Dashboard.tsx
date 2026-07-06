@@ -13,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 
 import {
-  BookOpen, MessageSquare, User, BarChart3, Clock, Award, Star, Send, LogOut, Loader2,
+  BookOpen, MessageSquare, User, BarChart3, Award, Star, Send, LogOut, Loader2,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
@@ -61,8 +61,20 @@ const Dashboard = () => {
     }
   };
 
-  const enrolledCourses = dashboard?.enrolled_courses || [];
-  const stats = dashboard?.stats || { total_courses: 0, completed_courses: 0, study_hours: 0, certificates: 0 };
+  const enrolledCourses = dashboard?.courses || [];
+  const overview = dashboard?.overview || {
+    profile: { name: user?.name || "", email: user?.email || "" },
+    total_courses: 0,
+    total_certificates: 0,
+    completed_enrollments: 0,
+    pending_enrollments: 0,
+    failed_enrollments: 0,
+  };
+
+  const displayName = overview.profile?.name || user?.name || "";
+  const completedCoursesCount = enrolledCourses.filter(
+    (c) => c.payment_status === "completed"
+  ).length;
 
   return (
     <div className="min-h-screen flex flex-col bg-background" dir={isRtl ? "rtl" : "ltr"}>
@@ -71,7 +83,7 @@ const Dashboard = () => {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-bold text-foreground">
-              {isRtl ? `مرحباً، ${user?.name}` : `Welcome, ${user?.name}`}
+              {isRtl ? `مرحباً، ${displayName}` : `Welcome, ${displayName}`}
             </h1>
             <p className="text-muted-foreground mt-1">
               {isRtl ? "تابع رحلتك التعليمية" : "Continue your learning journey"}
@@ -91,10 +103,10 @@ const Dashboard = () => {
           <>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
               {[
-                { icon: BookOpen, label: isRtl ? "الدورات المسجلة" : "Enrolled Courses", value: stats.total_courses, color: "text-blue-500" },
-                { icon: Award, label: isRtl ? "المكتملة" : "Completed", value: stats.completed_courses, color: "text-green-500" },
-                { icon: Clock, label: isRtl ? "ساعات الدراسة" : "Study Hours", value: stats.study_hours, color: "text-orange-500" },
-                { icon: BarChart3, label: isRtl ? "الشهادات" : "Certificates", value: stats.certificates, color: "text-purple-500" },
+                { icon: BookOpen, label: isRtl ? "الدورات المسجلة" : "Enrolled Courses", value: completedCoursesCount, color: "text-blue-500" },
+                { icon: Award, label: isRtl ? "المكتملة" : "Completed", value: overview.completed_enrollments, color: "text-green-500" },
+                { icon: BarChart3, label: isRtl ? "قيد الانتظار" : "Pending", value: overview.pending_enrollments, color: "text-orange-500" },
+                { icon: Award, label: isRtl ? "الشهادات" : "Certificates", value: overview.total_certificates, color: "text-purple-500" },
               ].map((stat) => (
                 <Card key={stat.label} className="border-border">
                   <CardContent className="p-4 flex items-center gap-3">
@@ -128,7 +140,7 @@ const Dashboard = () => {
 
               <TabsContent value="courses">
                 <div className="grid gap-4">
-                  {enrolledCourses.length === 0 ? (
+                  {enrolledCourses.filter((c) => c.payment_status === "completed").length === 0 ? (
                     <Card className="border-border">
                       <CardContent className="p-8 text-center">
                         <BookOpen className="mx-auto mb-4 text-muted-foreground" size={48} />
@@ -141,16 +153,28 @@ const Dashboard = () => {
                       </CardContent>
                     </Card>
                   ) : (
-                    enrolledCourses.map((course) => (
-                      <Card key={course.id} className="border-border">
+                    enrolledCourses
+                      .filter((course) => course.payment_status === "completed")
+                      .map((course) => (
+                      <Card key={course.course_id} className="border-border">
                         <CardContent className="p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
                               <h3 className="font-semibold text-foreground">{course.title}</h3>
-                              <Badge variant="secondary">{course.level}</Badge>
+                              <Badge className="bg-green-500/10 text-green-600">
+                                {course.payment_status}
+                              </Badge>
                             </div>
+                            <p className="text-xs text-muted-foreground">
+                              {isRtl ? "تاريخ التسجيل: " : "Enrolled: "}
+                              {new Date(course.enrolled_at).toLocaleDateString(isRtl ? "ar" : "en-US")}
+                            </p>
                           </div>
-                          <Button variant="outline" size="sm" onClick={() => navigate(`/courses/${course.id}/learn`)}>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => navigate(`/courses/${course.course_id}/learn`)}
+                          >
                             {isRtl ? "متابعة" : "Continue"}
                           </Button>
                         </CardContent>
@@ -170,9 +194,11 @@ const Dashboard = () => {
                       <label className="text-sm font-medium text-foreground mb-1.5 block">{isRtl ? "الدورة" : "Course"}</label>
                       <select value={feedbackCourse} onChange={(e) => setFeedbackCourse(e.target.value)} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
                         <option value="">{isRtl ? "اختر دورة" : "Select a course"}</option>
-                        {enrolledCourses.map((c) => (
-                          <option key={c.id} value={c.id}>{c.title}</option>
-                        ))}
+                        {enrolledCourses
+                          .filter((c) => c.payment_status === "completed")
+                          .map((c) => (
+                            <option key={c.course_id} value={c.course_id}>{c.title}</option>
+                          ))}
                       </select>
                     </div>
                     <div>

@@ -143,6 +143,78 @@ export const quizQuestions = [
     ar: { question: "كلما تدربت أكثر، ____ أصبحت.", options: ["better", "the better", "best", "the best"] },
     correct: 1,
   },
+  // C1 Level (Questions 21-25)
+  {
+    id: 21,
+    level: "C1" as const,
+    en: { question: "Were I in your position, I ____ the offer without hesitation.", options: ["accept", "would accept", "would have accepted", "accepted"] },
+    ar: { question: "لو كنت في مكانك، ____ العرض دون تردد.", options: ["accept", "would accept", "would have accepted", "accepted"] },
+    correct: 2,
+  },
+  {
+    id: 22,
+    level: "C1" as const,
+    en: { question: "The proposal was so ambiguous that it left plenty of room for ____.", options: ["interpretation", "misinterpretation", "clarity", "precision"] },
+    ar: { question: "كان الاقتراح غامضًا لدرجة أنه ترك مجالًا كبيرًا لل____.", options: ["interpretation", "misinterpretation", "clarity", "precision"] },
+    correct: 1,
+  },
+  {
+    id: 23,
+    level: "C1" as const,
+    en: { question: "She is ____ knowledgeable that she can discuss almost any topic in depth.", options: ["so", "such", "too", "very"] },
+    ar: { question: "إنها ____ على دراية لدرجة أنها تستطيع مناقشة أي موضوع تقريبًا بعمق.", options: ["so", "such", "too", "very"] },
+    correct: 0,
+  },
+  {
+    id: 24,
+    level: "C1" as const,
+    en: { question: "The committee's decision was tantamount ____ an outright rejection.", options: ["to", "with", "of", "for"] },
+    ar: { question: "قرار اللجنة كان يعادل ____ رفضًا صريحًا.", options: ["to", "with", "of", "for"] },
+    correct: 0,
+  },
+  {
+    id: 25,
+    level: "C1" as const,
+    en: { question: "Hardly ____ the report when the manager asked for revisions.", options: ["I finished", "had I finished", "I had finished", "did I finished"] },
+    ar: { question: "بالكاد ____ التقرير عندما طلب المدير تعديلات.", options: ["I finished", "had I finished", "I had finished", "did I finished"] },
+    correct: 1,
+  },
+  // C2 Level (Questions 26-30)
+  {
+    id: 26,
+    level: "C2" as const,
+    en: { question: "His speech was so ____ that the audience was left in awe.", options: ["prosaic", "pedestrian", "electrifying", "mundane"] },
+    ar: { question: "كان خطابه ____ لدرجة أن الجمهور بقي مذهولًا.", options: ["prosaic", "pedestrian", "electrifying", "mundane"] },
+    correct: 2,
+  },
+  {
+    id: 27,
+    level: "C2" as const,
+    en: { question: "The lawyer's argument was ____; it could not be refuted.", options: ["tenuous", "fallacious", "incontrovertible", "specious"] },
+    ar: { question: "كان حججة المحامي ____؛ لا يمكن دحضها.", options: ["tenuous", "fallacious", "incontrovertible", "specious"] },
+    correct: 2,
+  },
+  {
+    id: 28,
+    level: "C2" as const,
+    en: { question: "Despite the ____ of evidence, the jury remained unconvinced.", options: ["dearth", "paucity", "preponderance", "absence"] },
+    ar: { question: "على الرغم من ____ الأدلة، ظلت هيئة المحلفين غير مقتنعة.", options: ["dearth", "paucity", "preponderance", "absence"] },
+    correct: 2,
+  },
+  {
+    id: 29,
+    level: "C2" as const,
+    en: { question: "The author's latest novel is a ____ exploration of identity and belonging.", options: ["perfunctory", "lackluster", "seminal", "mediocre"] },
+    ar: { question: "رواية المؤلف الأخيرة هي استكشاف ____ للهوية والانتماء.", options: ["perfunctory", "lackluster", "seminal", "mediocre"] },
+    correct: 2,
+  },
+  {
+    id: 30,
+    level: "C2" as const,
+    en: { question: "Only after years of research did the scientist ____ a viable solution.", options: ["come up with", "hit upon", "stumble across", "arrive at"] },
+    ar: { question: "فقط بعد سنوات من البحث ____ العالم على حل قابل للتطبيق.", options: ["come up with", "hit upon", "stumble across", "arrive at"] },
+    correct: 3,
+  },
 ];
 
 export type CEFRLevel = "A1" | "A2" | "B1" | "B2" | "C1" | "C2";
@@ -164,6 +236,18 @@ export function calculateLevel(answers: Record<number, number>): { level: CEFRLe
   else if (pct <= 0.9) level = "C1";
   else level = "C2";
 
+  return { level, score, total };
+}
+
+export function calculateLevelFromScore(score: number, total: number): { level: CEFRLevel; score: number; total: number } {
+  let level: CEFRLevel;
+  const pct = total > 0 ? score / total : 0;
+  if (pct <= 0.25) level = "A1";
+  else if (pct <= 0.4) level = "A2";
+  else if (pct <= 0.6) level = "B1";
+  else if (pct <= 0.75) level = "B2";
+  else if (pct <= 0.9) level = "C1";
+  else level = "C2";
   return { level, score, total };
 }
 

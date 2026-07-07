@@ -1,36 +1,75 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/i18n/LanguageContext";
-import { quizQuestions, calculateLevel, levelColors } from "@/data/quizData";
-import { Clock, ListChecks, CheckCircle2 } from "lucide-react";
+import { calculateLevelFromScore, levelColors } from "@/data/quizData";
+import { Clock, ListChecks, CheckCircle2, Loader2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { fetchEvaluationQuizzes, submitPlacementResult, type EvaluationQuiz } from "@/api/quiz";
+import { useAuth } from "@/context/AuthContext";
+import { toast } from "@/hooks/use-toast";
 
 const PlacementTest = () => {
-  const { t, lang } = useLanguage();
+  const { lang } = useLanguage();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [answers, setAnswers] = useState<Record<number, number>>({});
+  const [submitting, setSubmitting] = useState(false);
 
+  const { data: quizzes, isLoading, isError } = useQuery({
+    queryKey: ["evaluation-quizzes"],
+    queryFn: fetchEvaluationQuizzes,
+  });
+
+  const quiz: EvaluationQuiz | undefined = quizzes?.[0];
+  const questions = quiz?.questions ? [...quiz.questions].sort((a, b) => a.order - b.order) : [];
+  const total = questions.length;
   const answered = Object.keys(answers).length;
-  const total = quizQuestions.length;
-  const progressPct = (answered / total) * 100;
+  const progressPct = total > 0 ? (answered / total) * 100 : 0;
 
-  const handleSelect = (questionId: number, optionIdx: number) => {
-    setAnswers((prev) => ({ ...prev, [questionId]: optionIdx }));
+  const handleSelect = (questionId: number, answerId: number) => {
+    setAnswers((prev) => ({ ...prev, [questionId]: answerId }));
   };
 
-  const handleSubmit = () => {
-    const result = calculateLevel(answers);
+  const handleSubmit = async () => {
+    if (!quiz || submitting) return;
+    let score = 0;
+    for (const q of questions) {
+      const chosen = answers[q.id];
+      const correct = q.answers.find((a) => a.is_correct);
+      if (chosen && correct && chosen === correct.id) score++;
+    }
+    const result = calculateLevelFromScore(score, total);
     localStorage.setItem("quizResult", JSON.stringify(result));
-    navigate("/result");
+
+    try {
+      setSubmitting(true);
+      await submitPlacementResult({
+        quiz_id: quiz.id,
+        user_id: user?.id ?? 0,
+        score,
+        level: result.level,
+      });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Failed to submit result";
+      toast({ title: lang === "en" ? "Submission failed" : "فشل الإرسال", description: msg, variant: "destructive" });
+    } finally {
+      setSubmitting(false);
+      navigate("/result");
+    }
   };
 
-  const levels = ["A1", "A2", "B1", "B2"] as const;
+  const levels = ["A1", "A2", "B1", "B2", "C1", "C2"] as const;
   const levelLabels = {
-    en: { A1: "Beginner", A2: "Elementary", B1: "Intermediate", B2: "Upper Int." },
-    ar: { A1: "مبتدئ", A2: "أساسي", B1: "متوسط", B2: "فوق المتوسط" },
+    en: { A1: "Beginner", A2: "Elementary", B1: "Intermediate", B2: "Upper Int.", C1: "Advanced", C2: "Proficiency" },
+    ar: { A1: "مبتدئ", A2: "أساسي", B1: "متوسط", B2: "فوق المتوسط", C1: "متقدم", C2: "إتقان" },
   };
+
+  // Cycle level colors across dynamic questions for the numbered badges
+  const badgeLevels: (keyof typeof levelColors)[] = ["A1", "A2", "B1", "B2", "C1", "C2"];
+
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -45,7 +84,7 @@ const PlacementTest = () => {
             </div>
             <div>
               <h1 className="font-bold text-foreground text-lg">
-                {lang === "en" ? "Cambridge Assessment" : "تقييم كامبريدج"}
+                {quiz?.title || (lang === "en" ? "Cambridge Assessment" : "تقييم كامبريدج")}
               </h1>
               <p className="text-sm text-muted-foreground">
                 {lang === "en" ? "English Placement Test" : "اختبار تحديد المستوى"}
@@ -87,9 +126,9 @@ const PlacementTest = () => {
                 ))}
               </div>
 
-              {answered === total && (
-                <Button className="w-full mt-6" onClick={handleSubmit}>
-                  {lang === "en" ? "Submit Test" : "إرسال الاختبار"}
+              {total > 0 && answered === total && (
+                <Button className="w-full mt-6" onClick={handleSubmit} disabled={submitting}>
+                  {submitting ? <Loader2 className="animate-spin" size={16} /> : (lang === "en" ? "Submit Test" : "إرسال الاختبار")}
                 </Button>
               )}
             </div>
@@ -102,30 +141,51 @@ const PlacementTest = () => {
                 {lang === "en" ? "English Placement Test" : "اختبار تحديد المستوى"}
               </h2>
               <p className="text-muted-foreground">
-                {lang === "en"
-                  ? "This adaptive test will assess your English proficiency level. Choose the best answer for each question."
-                  : "سيقيّم هذا الاختبار مستواك في اللغة الإنجليزية. اختر أفضل إجابة لكل سؤال."}
+                {quiz?.description ||
+                  (lang === "en"
+                    ? "This adaptive test will assess your English proficiency level. Choose the best answer for each question."
+                    : "سيقيّم هذا الاختبار مستواك في اللغة الإنجليزية. اختر أفضل إجابة لكل سؤال.")}
               </p>
             </div>
 
+            {isLoading && (
+              <div className="flex items-center justify-center py-16 text-muted-foreground gap-2">
+                <Loader2 className="animate-spin" size={20} />
+                {lang === "en" ? "Loading questions..." : "جارٍ تحميل الأسئلة..."}
+              </div>
+            )}
+
+            {isError && (
+              <div className="text-center py-16 text-destructive">
+                {lang === "en" ? "Failed to load quiz. Please try again." : "فشل تحميل الاختبار. حاول مرة أخرى."}
+              </div>
+            )}
+
+            {!isLoading && !isError && total === 0 && (
+              <div className="text-center py-16 text-muted-foreground">
+                {lang === "en" ? "No questions available." : "لا توجد أسئلة متاحة."}
+              </div>
+            )}
+
             <div className="space-y-8">
-              {quizQuestions.map((q, idx) => {
-                const qData = lang === "en" ? q.en : q.ar;
-                const levelColor = levelColors[q.level];
+              {questions.map((q, idx) => {
+                const levelKey = badgeLevels[idx % badgeLevels.length];
+                const levelColor = levelColors[levelKey];
+                const sortedAnswers = [...q.answers].sort((a, b) => a.order - b.order);
                 return (
                   <div key={q.id} className="border-t border-border pt-6">
                     <div className="flex items-start gap-3 mb-4">
                       <div className={`w-8 h-8 rounded-full ${levelColor} text-white flex items-center justify-center text-sm font-bold shrink-0`}>
                         {idx + 1}
                       </div>
-                      <p className="text-foreground font-medium pt-1">{qData.question}</p>
+                      <p className="text-foreground font-medium pt-1">{q.question_text}</p>
                     </div>
                     <div className="space-y-3 ms-11">
-                      {qData.options.map((opt, optIdx) => {
-                        const isSelected = answers[q.id] === optIdx;
+                      {sortedAnswers.map((ans, optIdx) => {
+                        const isSelected = answers[q.id] === ans.id;
                         return (
                           <label
-                            key={optIdx}
+                            key={ans.id}
                             className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
                               isSelected
                                 ? "border-primary bg-primary/5"
@@ -142,10 +202,10 @@ const PlacementTest = () => {
                               name={`q-${q.id}`}
                               className="sr-only"
                               checked={isSelected}
-                              onChange={() => handleSelect(q.id, optIdx)}
+                              onChange={() => handleSelect(q.id, ans.id)}
                             />
                             <span className="text-foreground text-sm">
-                              {String.fromCharCode(65 + optIdx)}) {opt}
+                              {String.fromCharCode(65 + optIdx)}) {ans.answer_text}
                             </span>
                           </label>
                         );
@@ -156,10 +216,10 @@ const PlacementTest = () => {
               })}
             </div>
 
-            {answered === total && (
+            {total > 0 && answered === total && (
               <div className="mt-10 text-center">
-                <Button size="lg" onClick={handleSubmit} className="gap-2">
-                  <CheckCircle2 size={18} />
+                <Button size="lg" onClick={handleSubmit} disabled={submitting} className="gap-2">
+                  {submitting ? <Loader2 className="animate-spin" size={18} /> : <CheckCircle2 size={18} />}
                   {lang === "en" ? "Submit & See My Level" : "إرسال ومعرفة مستواي"}
                 </Button>
               </div>

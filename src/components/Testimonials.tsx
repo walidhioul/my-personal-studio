@@ -1,28 +1,11 @@
-import { useEffect, useState } from "react";
 import { useLanguage } from "@/i18n/LanguageContext";
-import { getFeedbacks } from "@/api/feedback";
-import { Feedback } from "@/types/feedback";
+import { useFeedbacks } from "@/hooks/useFeedbacks";
 
 const Testimonials = () => {
   const { t } = useLanguage();
-  const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data, isLoading, isError } = useFeedbacks();
 
-  useEffect(() => {
-    getFeedbacks()
-      .then((res) => {
-        // Filter only approved feedbacks and take first 6
-        const approvedFeedbacks = res.data
-          .filter((fb) => fb.is_approved)
-          .slice(0, 6);
-        setFeedbacks(approvedFeedbacks);
-      })
-      .catch((err) => {
-  console.error("Feedbacks fetch failed:", err); 
-  setFeedbacks([]);
-})
-      .finally(() => setLoading(false));
-  }, []);
+  const feedbacks = (data ?? []).filter((fb) => fb.is_approved).slice(0, 6);
 
   return (
     <section className="py-20">
@@ -30,9 +13,9 @@ const Testimonials = () => {
         <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-3">{t.testimonials.title}</h2>
         <p className="text-muted-foreground max-w-lg mx-auto mb-14">{t.testimonials.subtitle}</p>
 
-        {loading ? (
+        {isLoading ? (
           <p className="text-muted-foreground">Loading...</p>
-        ) : feedbacks.length === 0 ? (
+        ) : isError || feedbacks.length === 0 ? (
           <p className="text-muted-foreground">No feedbacks yet.</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">

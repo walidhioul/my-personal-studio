@@ -60,6 +60,7 @@ export interface DashboardEnrolledCourse {
   thumbnail?: string | null;
   picture?: string | null;
   payment_status?: string;
+  course_id?: number;
   enrolled_at?: string;
 }
 

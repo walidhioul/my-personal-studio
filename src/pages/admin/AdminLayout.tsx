@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
-import { Users, BookOpen, GraduationCap, MessageSquare, LogOut, LayoutDashboard } from "lucide-react";
+import { Users, BookOpen, GraduationCap, MessageSquare, LogOut, LayoutDashboard, ClipboardList } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -8,6 +8,7 @@ const nav = [
   { to: "/admin", label: "Overview", icon: LayoutDashboard, end: true },
   { to: "/admin/users", label: "Users", icon: Users },
   { to: "/admin/courses", label: "Courses", icon: BookOpen },
+  { to: "/admin/evaluation-quizz", label: "Evaluation Quizzes", icon: ClipboardList },
   { to: "/admin/enrollments", label: "Enrollments", icon: GraduationCap },
   { to: "/admin/feedbacks", label: "Feedbacks", icon: MessageSquare },
 ];

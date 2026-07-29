@@ -21,27 +21,61 @@ export interface ApiLesson {
   is_completed?: boolean;
 }
 
+export interface ApiVideo {
+  id: number;
+  title: string;
+  description?: string;
+  video_url?: string | null;
+  duration?: number;
+  order?: number;
+  is_free?: boolean;
+}
+
+export interface ApiResource {
+  id: number;
+  title: string;
+  url?: string;
+  file_url?: string | null;
+  type?: string;
+}
+
+export interface ApiQuiz {
+  id: number;
+  title: string;
+  description?: string;
+  passing_score?: number;
+}
+
 export interface ApiCourseDetail extends ApiCourse {
-  lessons: ApiLesson[];
+  lessons?: ApiLesson[];
+  videos?: ApiVideo[];
+  resources?: ApiResource[];
+  quizzes?: ApiQuiz[];
+}
+
+export interface DashboardEnrolledCourse {
+  id: number;
+  title: string;
+  level?: string;
+  thumbnail?: string | null;
+  picture?: string | null;
+  payment_status?: string;
+  course_id?: number;
+  enrolled_at?: string;
+}
+
+export interface DashboardOverview {
+  profile: { name: string; email: string };
+  total_courses: number;
+  total_certificates: number;
+  completed_enrollments: number;
+  pending_enrollments: number;
+  failed_enrollments: number;
 }
 
 export interface DashboardData {
-  user: {
-    id: number;
-    name: string;
-    email: string;
-  };
-  enrolled_courses: {
-    id: number;
-    title: string;
-    level: string;
-  }[];
-  stats: {
-    total_courses: number;
-    completed_courses: number;
-    study_hours: number;
-    certificates: number;
-  };
+  overview: DashboardOverview;
+  courses: DashboardEnrolledCourse[];
 }
 
 export interface ApiResponse<T> {

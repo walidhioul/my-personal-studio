@@ -1,8 +1,14 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { z } from "zod";
-import * as admin from "@/api/admin";
 import { User } from "@/types/auth";
+import {
+  useAdminUsers,
+  useCreateUser,
+  useUpdateUser,
+  useDeleteUser,
+  useToggleUserActive,
+  useChangeUserRole,
+} from "@/hooks/useAdminUsers";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,8 +17,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { toast } from "sonner";
-import { Trash2, Pencil, Plus } from "lucide-react";
+import DeleteConfirmationDialog from "@/components/admin/evaluation-quiz/DeleteConfirmationDialog";
+import { Trash2, Pencil, Plus, Loader2 } from "lucide-react";
 
 const createUserSchema = z
   .object({
@@ -33,9 +39,7 @@ const createUserSchema = z
 
 const editUserSchema = z.object({
   name: z.string().trim().min(2, "Name must be at least 2 characters").max(100),
-  email: z.string().trim().email("Invalid email address").max(255),
   role: z.enum(["student", "admin"]),
-  is_active: z.boolean(),
 });
 
 type FormState = {
@@ -57,20 +61,22 @@ const emptyForm: FormState = {
 };
 
 const AdminUsers = () => {
-  const qc = useQueryClient();
-  const { data, isLoading } = useQuery({
-    queryKey: ["admin", "users"],
-    queryFn: admin.listUsers,
-    select: (r) => r.data,
-  });
+  const { data, isLoading } = useAdminUsers();
+
+  const createUser = useCreateUser();
+  const updateUser = useUpdateUser();
+  const deleteUser = useDeleteUser();
+  const toggleActive = useToggleUserActive();
+  const changeRole = useChangeUserRole();
 
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<User | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [submitting, setSubmitting] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
+  const [pendingId, setPendingId] = useState<number | null>(null);
 
-  const refresh = () => qc.invalidateQueries({ queryKey: ["admin", "users"] });
+  const submitting = createUser.isPending || updateUser.isPending;
 
   const openCreate = () => {
     setEditing(null);
@@ -95,12 +101,7 @@ const AdminUsers = () => {
   const submit = async () => {
     setErrors({});
     const parsed = editing
-      ? editUserSchema.safeParse({
-          name: form.name,
-          email: form.email,
-          role: form.role,
-          is_active: form.is_active,
-        })
+      ? editUserSchema.safeParse({ name: form.name, role: form.role })
       : createUserSchema.safeParse(form);
 
     if (!parsed.success) {
@@ -113,41 +114,42 @@ const AdminUsers = () => {
       return;
     }
 
-    setSubmitting(true);
     try {
       if (editing) {
-        await admin.updateUser(editing.id, parsed.data as Partial<User>);
-        toast.success("User updated");
+        await updateUser.mutateAsync({
+          id: editing.id,
+          payload: parsed.data as { name: string; role: string },
+        });
+        if ((editing.is_active !== false) !== form.is_active) {
+          await toggleActive.mutateAsync(editing.id);
+        }
       } else {
-        await admin.createUser(parsed.data as never);
-        toast.success("User created");
+        await createUser.mutateAsync(parsed.data as never);
       }
       setOpen(false);
-      refresh();
-    } catch (e) {
-      toast.error((e as Error).message);
-    } finally {
-      setSubmitting(false);
+    } catch {
+      /* errors surfaced via toast in hooks */
     }
   };
 
-  const remove = async (id: number) => {
-    if (!confirm("Delete this user?")) return;
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
     try {
-      await admin.deleteUser(id);
-      toast.success("Deleted");
-      refresh();
-    } catch (e) { toast.error((e as Error).message); }
+      await deleteUser.mutateAsync(deleteTarget.id);
+      setDeleteTarget(null);
+    } catch {
+      /* handled in hook */
+    }
   };
 
-  const toggleActive = async (id: number) => {
-    try { await admin.toggleUserActive(id); refresh(); }
-    catch (e) { toast.error((e as Error).message); }
+  const onToggleActive = (id: number) => {
+    setPendingId(id);
+    toggleActive.mutate(id, { onSettled: () => setPendingId(null) });
   };
 
-  const changeRole = async (id: number, role: string) => {
-    try { await admin.changeUserRole(id, role); toast.success("Role updated"); refresh(); }
-    catch (e) { toast.error((e as Error).message); }
+  const onChangeRole = (id: number, role: string) => {
+    setPendingId(id);
+    changeRole.mutate({ id, role }, { onSettled: () => setPendingId(null) });
   };
 
   return (
@@ -169,6 +171,7 @@ const AdminUsers = () => {
                 <Input
                   placeholder="Full name"
                   maxLength={100}
+                  disabled={submitting}
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                 />
@@ -180,6 +183,7 @@ const AdminUsers = () => {
                   placeholder="user@example.com"
                   type="email"
                   maxLength={255}
+                  disabled={submitting || !!editing}
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
                 />
@@ -192,6 +196,7 @@ const AdminUsers = () => {
                     <Input
                       placeholder="At least 8 characters"
                       type="password"
+                      disabled={submitting}
                       value={form.password}
                       onChange={(e) => setForm({ ...form, password: e.target.value })}
                     />
@@ -202,6 +207,7 @@ const AdminUsers = () => {
                     <Input
                       placeholder="Repeat password"
                       type="password"
+                      disabled={submitting}
                       value={form.password_confirmation}
                       onChange={(e) => setForm({ ...form, password_confirmation: e.target.value })}
                     />
@@ -213,7 +219,11 @@ const AdminUsers = () => {
               )}
               <div>
                 <Label>Role</Label>
-                <Select value={form.role} onValueChange={(v) => setForm({ ...form, role: v })}>
+                <Select
+                  value={form.role}
+                  disabled={submitting}
+                  onValueChange={(v) => setForm({ ...form, role: v })}
+                >
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="student">Student</SelectItem>
@@ -231,6 +241,7 @@ const AdminUsers = () => {
                 <Label>Active</Label>
                 <Switch
                   checked={form.is_active}
+                  disabled={submitting}
                   onCheckedChange={(v) => setForm({ ...form, is_active: v })}
                 />
               </div>
@@ -238,6 +249,7 @@ const AdminUsers = () => {
             <DialogFooter>
               <Button variant="outline" onClick={() => setOpen(false)} disabled={submitting}>Cancel</Button>
               <Button onClick={submit} disabled={submitting}>
+                {submitting && <Loader2 size={14} className="animate-spin" />}
                 {submitting ? "Saving..." : editing ? "Update" : "Create"}
               </Button>
             </DialogFooter>
@@ -260,39 +272,68 @@ const AdminUsers = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {data?.map((u) => (
-                <TableRow key={u.id}>
-                  <TableCell>{u.id}</TableCell>
-                  <TableCell className="font-medium">{u.name}</TableCell>
-                  <TableCell>{u.email}</TableCell>
-                  <TableCell>
-                    <Select value={u.role || "student"} onValueChange={(v) => changeRole(u.id, v)}>
-                      <SelectTrigger className="w-32 h-8"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="student">Student</SelectItem>
-                        <SelectItem value="admin">Admin</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      className="cursor-pointer"
-                      variant={u.is_active === false ? "destructive" : "default"}
-                      onClick={() => toggleActive(u.id)}
-                    >
-                      {u.is_active === false ? "Inactive" : "Active"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right space-x-2">
-                    <Button size="sm" variant="outline" onClick={() => openEdit(u)}><Pencil size={14} /></Button>
-                    <Button size="sm" variant="destructive" onClick={() => remove(u.id)}><Trash2 size={14} /></Button>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {data?.map((u) => {
+                const rowBusy = pendingId === u.id;
+                return (
+                  <TableRow key={u.id}>
+                    <TableCell>{u.id}</TableCell>
+                    <TableCell className="font-medium">{u.name}</TableCell>
+                    <TableCell>{u.email}</TableCell>
+                    <TableCell>
+                      <Select
+                        value={u.role || "student"}
+                        disabled={rowBusy}
+                        onValueChange={(v) => onChangeRole(u.id, v)}
+                      >
+                        <SelectTrigger className="w-32 h-8"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="student">Student</SelectItem>
+                          <SelectItem value="admin">Admin</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        className={rowBusy ? "opacity-60 pointer-events-none" : "cursor-pointer"}
+                        variant={u.is_active === false ? "destructive" : "default"}
+                        onClick={() => !rowBusy && onToggleActive(u.id)}
+                      >
+                        {u.is_active === false ? "Inactive" : "Active"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right space-x-2">
+                      <Button size="sm" variant="outline" disabled={rowBusy} onClick={() => openEdit(u)}>
+                        <Pencil size={14} />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        disabled={rowBusy || deleteUser.isPending}
+                        onClick={() => setDeleteTarget(u)}
+                      >
+                        <Trash2 size={14} />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </div>
       )}
+
+      <DeleteConfirmationDialog
+        open={!!deleteTarget}
+        onOpenChange={(o) => !o && setDeleteTarget(null)}
+        title="Delete user"
+        description={
+          deleteTarget
+            ? `Are you sure you want to delete "${deleteTarget.name}"? This action cannot be undone.`
+            : undefined
+        }
+        loading={deleteUser.isPending}
+        onConfirm={confirmDelete}
+      />
     </div>
   );
 };

@@ -131,8 +131,15 @@ export interface AdminFeedback {
   course?: { id: number; title: string };
 }
 export const listAdminFeedbacks = () =>
-  apiClient.get<ApiResponse<AdminFeedback[]>>("/admin/feedbacks");
+  apiClient.get<ApiResponse<AdminFeedback[]>>("/admin/feedback");
 export const approveFeedback = (id: number) =>
-  apiClient.patch<ApiResponse<AdminFeedback>>(`/admin/feedbacks/${id}/approve`);
+  apiClient.patch<ApiResponse<AdminFeedback>>(`/admin/feedback/${id}/approve`);
 export const deleteFeedback = (id: number) =>
-  apiClient.delete<ApiResponse<null>>(`/admin/feedbacks/${id}`);
+  apiClient.delete<ApiResponse<null>>(`/admin/feedback/${id}`);
+
+// ---------- DASHBOARD (overview) ----------
+export interface AdminDashboardData {
+  [key: string]: unknown;
+}
+export const getAdminDashboard = () =>
+  apiClient.get<ApiResponse<AdminDashboardData>>("/admin/Dashboard");

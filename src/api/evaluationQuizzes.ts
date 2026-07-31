@@ -52,7 +52,7 @@ export interface ApiEnvelope<T> {
 }
 
 const LIST_URL = "/admin/evaluation-quizzes";
-const CREATE_URL = "/admin/evaluation-quizze";
+const CREATE_URL = "/admin/evaluation-quizzes";
 
 export const listEvaluationQuizzes = () =>
   apiClient.get<ApiEnvelope<AdminEvaluationQuiz[]>>(LIST_URL);

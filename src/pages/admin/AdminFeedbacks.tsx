@@ -1,28 +1,33 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import * as admin from "@/api/admin";
+import { useState } from "react";
+import {
+  useAdminFeedbacks,
+  useApproveFeedback,
+  useDeleteFeedback,
+} from "@/hooks/useAdminFeedbacks";
 import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { toast } from "sonner";
-import { Trash2, Check, Star } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import DeleteConfirmationDialog from "@/components/admin/evaluation-quiz/DeleteConfirmationDialog";
+import { Trash2, Check, Star, Loader2 } from "lucide-react";
+import type { AdminFeedback } from "@/api/admin";
 
 const AdminFeedbacks = () => {
-  const qc = useQueryClient();
-  const { data, isLoading } = useQuery({
-    queryKey: ["admin", "feedbacks"],
-    queryFn: admin.listAdminFeedbacks,
-    select: (r) => r.data,
-  });
-  const refresh = () => qc.invalidateQueries({ queryKey: ["admin", "feedbacks"] });
+  const { data: feedbacks = [], isLoading, isError, error } = useAdminFeedbacks();
+  const approveMutation = useApproveFeedback();
+  const deleteMutation = useDeleteFeedback();
+  const [pendingDelete, setPendingDelete] = useState<AdminFeedback | null>(null);
 
-  const approve = async (id: number) => {
-    try { await admin.approveFeedback(id); toast.success("Approved"); refresh(); }
-    catch (e) { toast.error((e as Error).message); }
-  };
-  const remove = async (id: number) => {
-    if (!confirm("Delete feedback?")) return;
-    try { await admin.deleteFeedback(id); toast.success("Deleted"); refresh(); }
-    catch (e) { toast.error((e as Error).message); }
+  const confirmDelete = () => {
+    if (!pendingDelete) return;
+    deleteMutation.mutate(pendingDelete.id, { onSuccess: () => setPendingDelete(null) });
   };
 
   return (
@@ -32,7 +37,13 @@ const AdminFeedbacks = () => {
         <p className="text-sm text-muted-foreground">Approve or remove student feedback</p>
       </div>
 
-      {isLoading ? <p>Loading...</p> : (
+      {isError ? (
+        <div className="border rounded-lg bg-card p-8 text-center text-sm text-destructive">
+          {(error as Error)?.message || "Failed to load feedbacks."}
+        </div>
+      ) : isLoading ? (
+        <Skeleton className="h-64 w-full" />
+      ) : (
         <div className="border rounded-lg bg-card">
           <Table>
             <TableHeader>
@@ -46,29 +57,81 @@ const AdminFeedbacks = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {data?.map((f) => (
-                <TableRow key={f.id}>
-                  <TableCell>{f.user?.name || `#${f.user_id}`}</TableCell>
-                  <TableCell>{f.course?.title || `#${f.course_id}`}</TableCell>
-                  <TableCell><span className="inline-flex items-center gap-1"><Star size={14} className="fill-yellow-400 text-yellow-400" />{f.rating}</span></TableCell>
-                  <TableCell className="max-w-[300px] truncate">{f.comment}</TableCell>
-                  <TableCell>
-                    <Badge variant={f.is_approved ? "default" : "secondary"}>
-                      {f.is_approved ? "Approved" : "Pending"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right space-x-2">
-                    {!f.is_approved && (
-                      <Button size="sm" variant="outline" onClick={() => approve(f.id)}><Check size={14} /></Button>
-                    )}
-                    <Button size="sm" variant="destructive" onClick={() => remove(f.id)}><Trash2 size={14} /></Button>
+              {feedbacks.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                    No feedback yet.
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                feedbacks.map((f) => {
+                  const approving =
+                    approveMutation.isPending && approveMutation.variables === f.id;
+                  const deleting =
+                    deleteMutation.isPending && deleteMutation.variables === f.id;
+                  return (
+                    <TableRow key={f.id}>
+                      <TableCell>{f.user?.name || `#${f.user_id}`}</TableCell>
+                      <TableCell>{f.course?.title || `#${f.course_id}`}</TableCell>
+                      <TableCell>
+                        <span className="inline-flex items-center gap-1">
+                          <Star size={14} className="fill-yellow-400 text-yellow-400" />
+                          {f.rating}
+                        </span>
+                      </TableCell>
+                      <TableCell className="max-w-[300px] truncate">{f.comment}</TableCell>
+                      <TableCell>
+                        <Badge variant={f.is_approved ? "default" : "secondary"}>
+                          {f.is_approved ? "Approved" : "Pending"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right space-x-2">
+                        {!f.is_approved && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            aria-label="Approve feedback"
+                            disabled={approving}
+                            onClick={() => approveMutation.mutate(f.id)}
+                          >
+                            {approving ? (
+                              <Loader2 size={14} className="animate-spin" />
+                            ) : (
+                              <Check size={14} />
+                            )}
+                          </Button>
+                        )}
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          aria-label="Delete feedback"
+                          disabled={deleting}
+                          onClick={() => setPendingDelete(f)}
+                        >
+                          {deleting ? (
+                            <Loader2 size={14} className="animate-spin" />
+                          ) : (
+                            <Trash2 size={14} />
+                          )}
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              )}
             </TableBody>
           </Table>
         </div>
       )}
+
+      <DeleteConfirmationDialog
+        open={!!pendingDelete}
+        onOpenChange={(o) => !o && setPendingDelete(null)}
+        title="Delete feedback"
+        description="Are you sure you want to delete this feedback? This action cannot be undone."
+        loading={deleteMutation.isPending}
+        onConfirm={confirmDelete}
+      />
     </div>
   );
 };

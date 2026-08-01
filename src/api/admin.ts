@@ -142,4 +142,4 @@ export interface AdminDashboardData {
   [key: string]: unknown;
 }
 export const getAdminDashboard = () =>
-  apiClient.get<ApiResponse<AdminDashboardData>>("/admin/Dashboard");
+  apiClient.get<ApiResponse<AdminDashboardData>>("/admin/dashboard");

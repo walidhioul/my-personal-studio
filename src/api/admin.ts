@@ -167,3 +167,12 @@ export const listCourseVideos = (courseId: number) =>
   apiClient.get<ApiResponse<AdminVideo[]>>(`/admin/courses/${courseId}/videos`);
 export const createVideo = (courseId: number, data: CreateVideoPayload) =>
   apiClient.post<ApiResponse<AdminVideo>>(`/admin/courses/${courseId}/videos`, data);
+
+export interface VideoUploadCredentials {
+  endpoint: string;
+  headers: Record<string, string>;
+}
+export const getVideoUploadCredentials = (courseId: number, videoId: number) =>
+  apiClient.get<VideoUploadCredentials | ApiResponse<VideoUploadCredentials>>(
+    `/admin/courses/${courseId}/videos/${videoId}/upload-credentials`
+  );

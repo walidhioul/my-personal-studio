@@ -35,6 +35,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Plus, Upload, Loader2, Video as VideoIcon } from "lucide-react";
+import { useBunnyVideoUpload } from "@/hooks/useBunnyVideoUpload";
 
 const emptyForm = {
   course_id: "",
@@ -67,6 +68,7 @@ const AdminVideos = () => {
   const { data: courses = [], isLoading: coursesLoading } = useAdminCoursesList();
   const { data: videos = [], isLoading, isError, error } = useAdminVideos(courseFilter);
   const createMutation = useCreateVideo();
+  const { inputRef, selectFile, handleFileSelected, startingId } = useBunnyVideoUpload();
 
   const courseTitle = useMemo(() => {
     const map = new Map<number, string>();
@@ -183,8 +185,19 @@ const AdminVideos = () => {
                     <TableCell>{statusBadge(v.status)}</TableCell>
                     <TableCell className="text-right">
                       {isPendingUpload(v.status) && (
-                        <Button size="sm" variant="outline" className="gap-2" disabled>
-                          <Upload size={14} /> Upload Video
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="gap-2"
+                          disabled={startingId === v.id}
+                          onClick={() => selectFile(v.course_id, v.id)}
+                        >
+                          {startingId === v.id ? (
+                            <Loader2 className="animate-spin" size={14} />
+                          ) : (
+                            <Upload size={14} />
+                          )}
+                          Upload Video
                         </Button>
                       )}
                     </TableCell>
@@ -195,6 +208,14 @@ const AdminVideos = () => {
           </Table>
         </div>
       )}
+
+      <input
+        ref={inputRef}
+        type="file"
+        accept="video/*"
+        className="hidden"
+        onChange={(e) => handleFileSelected(e.target.files?.[0])}
+      />
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>

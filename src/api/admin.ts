@@ -143,3 +143,27 @@ export interface AdminDashboardData {
 }
 export const getAdminDashboard = () =>
   apiClient.get<ApiResponse<AdminDashboardData>>("/admin/dashboard");
+
+// ---------- VIDEOS ----------
+export interface AdminVideo {
+  id: number;
+  course_id: number;
+  title: string;
+  description?: string | null;
+  order?: number | null;
+  is_free_preview?: boolean;
+  status?: string | null;
+  bunny_video_id?: string | null;
+  course?: { id: number; title: string } | null;
+}
+export interface CreateVideoPayload {
+  title: string;
+  description?: string;
+  order: number;
+  is_free_preview: boolean;
+}
+export const listAllVideos = () => apiClient.get<ApiResponse<AdminVideo[]>>("/admin/videos");
+export const listCourseVideos = (courseId: number) =>
+  apiClient.get<ApiResponse<AdminVideo[]>>(`/admin/courses/${courseId}/videos`);
+export const createVideo = (courseId: number, data: CreateVideoPayload) =>
+  apiClient.post<ApiResponse<AdminVideo>>(`/admin/courses/${courseId}/videos`, data);

@@ -72,8 +72,29 @@ const AdminVideos = () => {
   const { data: courses = [], isLoading: coursesLoading } = useAdminCoursesList();
   const { data: videos = [], isLoading, isError, error } = useAdminVideos(courseFilter);
   const createMutation = useCreateVideo();
-  const { inputRef, selectFile, handleFileSelected, retry, getUpload } =
+  const { inputRef, selectFile, handleFileSelected, retry, uploads, getUpload } =
     useBunnyVideoUpload();
+  const { getStatus, startPolling, reset: resetStatus } = useVideoStatusPolling();
+  const qc = useQueryClient();
+
+  // Start polling as soon as an upload reaches 100% (one timer per video).
+  useEffect(() => {
+    Object.entries(uploads).forEach(([id, state]) => {
+      if (state.phase !== "completed") return;
+      const videoId = Number(id);
+      const video = videos.find((v) => v.id === videoId);
+      if (!video) return;
+      startPolling(video.course_id, videoId, "processing");
+    });
+  }, [uploads, videos, startPolling]);
+
+  // Refresh the cached list once a video finishes processing.
+  useEffect(() => {
+    if (videos.some((v) => getStatus(v.id)?.status === "ready")) {
+      qc.invalidateQueries({ queryKey: ["admin", "videos"] });
+    }
+  }, [videos, getStatus, qc]);
+
 
 
   const courseTitle = useMemo(() => {

@@ -162,7 +162,7 @@ export interface CreateVideoPayload {
   order: number;
   is_free_preview: boolean;
 }
-export const listAllVideos = () => apiClient.get<ApiResponse<AdminVideo[]>>("/admin/videos");
+export const listAllVideos = () => apiClient.get<ApiResponse<AdminVideo[]>>("/admin/videos/pending-uploads");
 export const listCourseVideos = (courseId: number) =>
   apiClient.get<ApiResponse<AdminVideo[]>>(`/admin/courses/${courseId}/videos`);
 export const createVideo = (courseId: number, data: CreateVideoPayload) =>

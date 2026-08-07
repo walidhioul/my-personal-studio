@@ -89,6 +89,17 @@ const AdminVideos = () => {
     });
   }, [uploads, videos, startPolling]);
 
+  // Resume polling for videos the backend already reports as processing.
+  useEffect(() => {
+    videos.forEach((v) => {
+      if ((v.status || "").toLowerCase() === "processing") {
+        startPolling(v.course_id, v.id, "processing");
+      }
+    });
+  }, [videos, startPolling]);
+
+
+
   // Refresh the cached list once a video finishes processing.
   useEffect(() => {
     if (videos.some((v) => getStatus(v.id)?.status === "ready")) {

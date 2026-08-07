@@ -176,3 +176,9 @@ export const getVideoUploadCredentials = (courseId: number, videoId: number) =>
   apiClient.get<VideoUploadCredentials | ApiResponse<VideoUploadCredentials>>(
     `/admin/courses/${courseId}/videos/${videoId}/upload-credentials`
   );
+
+export type VideoStatus = "pending_upload" | "processing" | "ready" | "failed";
+export const getAdminVideo = (courseId: number, videoId: number) =>
+  apiClient.get<ApiResponse<AdminVideo> | AdminVideo>(
+    `/admin/courses/${courseId}/videos/${videoId}`
+  );

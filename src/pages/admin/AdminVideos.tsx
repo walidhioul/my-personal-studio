@@ -34,8 +34,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Upload, Loader2, Video as VideoIcon } from "lucide-react";
+import { Plus, Upload, Loader2, RotateCcw, Video as VideoIcon } from "lucide-react";
 import { useBunnyVideoUpload } from "@/hooks/useBunnyVideoUpload";
+import VideoUploadProgress from "@/components/admin/videos/VideoUploadProgress";
+
 
 const emptyForm = {
   course_id: "",
@@ -68,7 +70,9 @@ const AdminVideos = () => {
   const { data: courses = [], isLoading: coursesLoading } = useAdminCoursesList();
   const { data: videos = [], isLoading, isError, error } = useAdminVideos(courseFilter);
   const createMutation = useCreateVideo();
-  const { inputRef, selectFile, handleFileSelected, startingId } = useBunnyVideoUpload();
+  const { inputRef, selectFile, handleFileSelected, retry, getUpload } =
+    useBunnyVideoUpload();
+
 
   const courseTitle = useMemo(() => {
     const map = new Map<number, string>();
@@ -168,41 +172,63 @@ const AdminVideos = () => {
                   </TableCell>
                 </TableRow>
               ) : (
-                videos.map((v) => (
-                  <TableRow key={v.id}>
-                    <TableCell className="font-medium">{v.title}</TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {v.course?.title || courseTitle.get(v.course_id) || `#${v.course_id}`}
-                    </TableCell>
-                    <TableCell>{v.order ?? "—"}</TableCell>
-                    <TableCell>
-                      {v.is_free_preview ? (
-                        <Badge variant="secondary">Free</Badge>
-                      ) : (
-                        <span className="text-muted-foreground">—</span>
-                      )}
-                    </TableCell>
-                    <TableCell>{statusBadge(v.status)}</TableCell>
-                    <TableCell className="text-right">
-                      {isPendingUpload(v.status) && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="gap-2"
-                          disabled={startingId === v.id}
-                          onClick={() => selectFile(v.course_id, v.id)}
-                        >
-                          {startingId === v.id ? (
-                            <Loader2 className="animate-spin" size={14} />
-                          ) : (
-                            <Upload size={14} />
-                          )}
-                          Upload Video
-                        </Button>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))
+                videos.map((v) => {
+                  const upload = getUpload(v.id);
+                  const busy = upload.phase === "starting" || upload.phase === "uploading";
+                  return (
+                    <TableRow key={v.id}>
+                      <TableCell className="font-medium">{v.title}</TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {v.course?.title || courseTitle.get(v.course_id) || `#${v.course_id}`}
+                      </TableCell>
+                      <TableCell>{v.order ?? "—"}</TableCell>
+                      <TableCell>
+                        {v.is_free_preview ? (
+                          <Badge variant="secondary">Free</Badge>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {upload.phase === "completed" || busy || upload.phase === "error" ? (
+                          <VideoUploadProgress state={upload} />
+                        ) : (
+                          statusBadge(v.status)
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {upload.phase === "error" ? (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="gap-2"
+                            onClick={() => retry(v.course_id, v.id)}
+                          >
+                            <RotateCcw size={14} /> Retry
+                          </Button>
+                        ) : upload.phase === "completed" ? null : (
+                          isPendingUpload(v.status) && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="gap-2"
+                              disabled={busy}
+                              onClick={() => selectFile(v.course_id, v.id)}
+                            >
+                              {busy ? (
+                                <Loader2 className="animate-spin" size={14} />
+                              ) : (
+                                <Upload size={14} />
+                              )}
+                              {busy ? "Uploading..." : "Upload Video"}
+                            </Button>
+                          )
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+
               )}
             </TableBody>
           </Table>

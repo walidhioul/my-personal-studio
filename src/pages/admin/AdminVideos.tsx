@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
 import {
   useAdminVideos,
   useAdminCoursesList,
@@ -76,7 +75,6 @@ const AdminVideos = () => {
   const { inputRef, selectFile, handleFileSelected, retry, uploads, getUpload } =
     useBunnyVideoUpload();
   const { getStatus, startPolling, reset: resetStatus } = useVideoStatusPolling();
-  const qc = useQueryClient();
 
   // Start polling as soon as an upload reaches 100% (one timer per video).
   useEffect(() => {

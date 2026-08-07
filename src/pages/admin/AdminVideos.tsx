@@ -100,12 +100,6 @@ const AdminVideos = () => {
 
 
 
-  // Refresh the cached list once a video finishes processing.
-  useEffect(() => {
-    if (videos.some((v) => getStatus(v.id)?.status === "ready")) {
-      qc.invalidateQueries({ queryKey: ["admin", "videos"] });
-    }
-  }, [videos, getStatus, qc]);
 
 
 

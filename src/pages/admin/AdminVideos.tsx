@@ -199,6 +199,8 @@ const AdminVideos = () => {
                 videos.map((v) => {
                   const upload = getUpload(v.id);
                   const busy = upload.phase === "starting" || upload.phase === "uploading";
+                  const polled = getStatus(v.id);
+                  const failedProcessing = polled?.status === "failed";
                   return (
                     <TableRow key={v.id}>
                       <TableCell className="font-medium">{v.title}</TableCell>
@@ -214,23 +216,35 @@ const AdminVideos = () => {
                         )}
                       </TableCell>
                       <TableCell>
-                        {upload.phase === "completed" || busy || upload.phase === "error" ? (
+                        {polled ? (
+                          <VideoStatusBadge
+                            status={polled.status}
+                            reconnecting={polled.reconnecting}
+                          />
+                        ) : busy || upload.phase === "error" ? (
                           <VideoUploadProgress state={upload} />
                         ) : (
                           statusBadge(v.status)
                         )}
                       </TableCell>
                       <TableCell className="text-right">
-                        {upload.phase === "error" ? (
+                        {upload.phase === "error" || failedProcessing ? (
                           <Button
                             size="sm"
                             variant="outline"
                             className="gap-2"
-                            onClick={() => retry(v.course_id, v.id)}
+                            onClick={() => {
+                              if (failedProcessing) {
+                                resetStatus(v.id);
+                                selectFile(v.course_id, v.id);
+                              } else {
+                                retry(v.course_id, v.id);
+                              }
+                            }}
                           >
-                            <RotateCcw size={14} /> Retry
+                            <RotateCcw size={14} /> Retry Upload
                           </Button>
-                        ) : upload.phase === "completed" ? null : (
+                        ) : polled ? null : upload.phase === "completed" ? null : (
                           isPendingUpload(v.status) && (
                             <Button
                               size="sm"
@@ -250,6 +264,7 @@ const AdminVideos = () => {
                         )}
                       </TableCell>
                     </TableRow>
+
                   );
                 })
 

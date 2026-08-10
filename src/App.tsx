@@ -25,6 +25,7 @@ import AdminCourses from "./pages/admin/AdminCourses";
 import AdminEnrollments from "./pages/admin/AdminEnrollments";
 import AdminVideos from "./pages/admin/AdminVideos";
 import AdminFiles from "./pages/admin/AdminFiles";
+import AdminResources from "./pages/admin/AdminResources";
 import AdminFeedbacks from "./pages/admin/AdminFeedbacks";
 import AdminEvaluationQuizzes from "./pages/admin/AdminEvaluationQuizzes";
 
@@ -63,6 +64,7 @@ const App = () => (
                 <Route path="evaluation-quizz" element={<AdminEvaluationQuizzes />} />
                 <Route path="videos" element={<AdminVideos />} />
                 <Route path="files" element={<AdminFiles />} />
+                <Route path="resources" element={<AdminResources />} />
                 <Route path="enrollments" element={<AdminEnrollments />} />
                 <Route path="feedbacks" element={<AdminFeedbacks />} />
               </Route>

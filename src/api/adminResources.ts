@@ -12,11 +12,10 @@ export interface AdminResource {
   created_at?: string | null;
 }
 
+/** Metadata only — the PDF never travels through Laravel. */
 export interface CreateResourcePayload {
   title: string;
   order: number;
-  file_name?: string;
-  file_size?: number;
 }
 
 export interface UpdateResourcePayload {

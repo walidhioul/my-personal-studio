@@ -128,14 +128,10 @@ const AdminResources = () => {
     setErrors(next);
     if (Object.keys(next).length > 0 || !courseId || !pdf) return;
 
+    // Metadata only — the PDF stays in browser memory until the presigned PUT.
     const res = await createMutation.mutateAsync({
       courseId,
-      data: {
-        title: form.title.trim(),
-        order,
-        file_name: pdf.name,
-        file_size: pdf.size,
-      },
+      data: { title: form.title.trim(), order },
     });
 
     const created = unwrapResource(res);

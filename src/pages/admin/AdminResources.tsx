@@ -268,9 +268,10 @@ const AdminResources = () => {
                   upload.phase === "starting" ||
                   upload.phase === "uploading" ||
                   upload.phase === "verifying";
-                // Backend is the source of truth: file_size !== null => Ready.
+                // Backend is the source of truth: stored file present => Ready.
                 const backendStatus =
-                  resource.file_size !== null && resource.file_size !== undefined
+                  (resource.file_size !== null && resource.file_size !== undefined) ||
+                  resource.storage_path
                     ? "ready"
                     : "pending_upload";
                 const status =

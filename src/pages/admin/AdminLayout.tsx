@@ -9,7 +9,6 @@ const nav = [
   { to: "/admin/users", label: "Users", icon: Users },
   { to: "/admin/courses", label: "Courses", icon: BookOpen },
   { to: "/admin/videos", label: "Videos", icon: Video },
-  { to: "/admin/files", label: "File Management", icon: FileText },
   { to: "/admin/resources", label: "Resource Management", icon: FolderOpen },
   { to: "/admin/evaluation-quizz", label: "Evaluation Quizzes", icon: ClipboardList },
   { to: "/admin/enrollments", label: "Enrollments", icon: GraduationCap },

@@ -3,11 +3,15 @@ import { ApiResponse } from "@/types/course";
 
 export interface AdminResource {
   id: number;
-  course_id: number;
+  course_id?: number;
   title: string;
   order?: number | null;
   file_name?: string | null;
+  mime_type?: string | null;
   file_size?: number | null;
+  storage_path?: string | null;
+  download_url?: string | null;
+  /** Legacy alias kept for older payloads. */
   file_path?: string | null;
   created_at?: string | null;
 }

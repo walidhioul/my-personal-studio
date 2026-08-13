@@ -3,7 +3,7 @@ import { ApiResponse } from "@/types/course";
 import { User } from "@/types/auth";
 
 // ---------- USERS ----------
-export const listUsers = () => apiClient.get<ApiResponse<User[]>>("/admin/users");
+export const listUsers = () => apiClient.get<ApiResponse<User[]>>("/admin/users?per_page=1000");
 export const getUser = (id: number) => apiClient.get<ApiResponse<User>>(`/admin/users/${id}`);
 export const createUser = (data: Partial<User> & { password: string }) =>
   apiClient.post<ApiResponse<User>>("/admin/users", data);
@@ -26,7 +26,7 @@ export interface AdminCourse {
   thumbnail?: string | null;
   picture?: string | null;
 }
-export const listAdminCourses = () => apiClient.get<ApiResponse<AdminCourse[]>>("/admin/courses");
+export const listAdminCourses = () => apiClient.get<ApiResponse<AdminCourse[]>>("/admin/courses?per_page=1000");
 export const createCourse = (data: Partial<AdminCourse>) =>
   apiClient.post<ApiResponse<AdminCourse>>("/admin/courses", data);
 export const updateCourse = (id: number, data: Partial<AdminCourse>) =>
@@ -62,7 +62,7 @@ export interface AdminResource {
   type?: string;
 }
 export const listResources = (courseId: number) =>
-  apiClient.get<ApiResponse<AdminResource[]>>(`/admin/courses/${courseId}/resources`);
+  apiClient.get<ApiResponse<AdminResource[]>>(`/admin/courses/${courseId}/resources?per_page=1000`);
 export const createResource = (courseId: number, data: Partial<AdminResource>) =>
   apiClient.post<ApiResponse<AdminResource>>(`/admin/courses/${courseId}/resources`, data);
 export const updateResource = (id: number, data: Partial<AdminResource>) =>
@@ -108,14 +108,25 @@ export interface AdminEnrollment {
   id: number;
   user_id: number;
   course_id: number;
+  payment_status?: string;
   created_at?: string;
   user?: { id: number; name: string; email: string };
   course?: { id: number; title: string };
 }
+
+export interface CreateEnrollmentPayload {
+  user_id: number;
+  course_id: number;
+  payment_status: "pending" | "paid" | "failed";
+}
+export const createEnrollment = (data: CreateEnrollmentPayload) =>
+  apiClient.post<ApiResponse<AdminEnrollment>>("/admin/enrollments", data);
+
+
 export const listEnrollments = () =>
-  apiClient.get<ApiResponse<AdminEnrollment[]>>("/admin/enrollments");
+  apiClient.get<ApiResponse<AdminEnrollment[]>>("/admin/enrollments?per_page=1000");
 export const listEnrollmentsByCourse = (courseId: number) =>
-  apiClient.get<ApiResponse<AdminEnrollment[]>>(`/admin/courses/${courseId}/enrollments`);
+  apiClient.get<ApiResponse<AdminEnrollment[]>>(`/admin/courses/${courseId}/enrollments?per_page=1000`);
 export const deleteEnrollment = (id: number) =>
   apiClient.delete<ApiResponse<null>>(`/admin/enrollments/${id}`);
 
@@ -131,7 +142,7 @@ export interface AdminFeedback {
   course?: { id: number; title: string };
 }
 export const listAdminFeedbacks = () =>
-  apiClient.get<ApiResponse<AdminFeedback[]>>("/admin/feedback");
+  apiClient.get<ApiResponse<AdminFeedback[]>>("/admin/feedback?per_page=1000");
 export const approveFeedback = (id: number) =>
   apiClient.patch<ApiResponse<AdminFeedback>>(`/admin/feedback/${id}/approve`);
 export const deleteFeedback = (id: number) =>
@@ -145,6 +156,8 @@ export const getAdminDashboard = () =>
   apiClient.get<ApiResponse<AdminDashboardData>>("/admin/dashboard");
 
 // ---------- VIDEOS ----------
+// ---------- VIDEOS ----------
+
 export interface AdminVideo {
   id: number;
   course_id: number;
@@ -154,31 +167,123 @@ export interface AdminVideo {
   is_free_preview?: boolean;
   status?: string | null;
   bunny_video_id?: string | null;
-  course?: { id: number; title: string } | null;
+  course?: {
+    id: number;
+    title: string;
+  } | null;
 }
+
 export interface CreateVideoPayload {
   title: string;
   description?: string;
   order: number;
   is_free_preview: boolean;
 }
-export const listAllVideos = () => apiClient.get<ApiResponse<AdminVideo[]>>("/admin/videos/pending-uploads");
+
+export interface UpdateVideoPayload {
+  title: string;
+  description?: string;
+  order: number;
+  is_free_preview: boolean;
+}
+
+export interface ReorderVideoItem {
+  id: number;
+  order: number;
+}
+
+
+// GET ALL VIDEOS
+export const listAllVideos = () =>
+  apiClient.get<ApiResponse<AdminVideo[]>>(
+    "/admin/videos/pending-uploads?per_page=1000"
+  );
+
+
+// GET VIDEOS BY COURSE
 export const listCourseVideos = (courseId: number) =>
-  apiClient.get<ApiResponse<AdminVideo[]>>(`/admin/courses/${courseId}/videos`);
-export const createVideo = (courseId: number, data: CreateVideoPayload) =>
-  apiClient.post<ApiResponse<AdminVideo>>(`/admin/courses/${courseId}/videos`, data);
+  apiClient.get<ApiResponse<AdminVideo[]>>(
+    `/admin/courses/${courseId}/videos`
+  );
+
+
+// GET ONE VIDEO
+export const getAdminVideo = (
+  courseId: number,
+  videoId: number
+) =>
+  apiClient.get<ApiResponse<AdminVideo>>(
+    `/admin/courses/${courseId}/videos/${videoId}`
+  );
+
+
+// CREATE VIDEO
+export const createVideo = (
+  courseId: number,
+  data: CreateVideoPayload
+) =>
+  apiClient.post<ApiResponse<AdminVideo>>(
+    `/admin/courses/${courseId}/videos`,
+    data
+  );
+
+
+// UPDATE VIDEO
+export const updateVideo = (
+  courseId: number,
+  videoId: number,
+  data: UpdateVideoPayload
+) =>
+  apiClient.put<ApiResponse<AdminVideo>>(
+    `/admin/courses/${courseId}/videos/${videoId}`,
+    data
+  );
+
+
+// DELETE VIDEO
+export const deleteVideo = (
+  courseId: number,
+  videoId: number
+) =>
+  apiClient.delete<ApiResponse<null>>(
+    `/admin/courses/${courseId}/videos/${videoId}`
+  );
+
+
+// REORDER VIDEOS
+export const reorderVideos = (
+  courseId: number,
+  items: ReorderVideoItem[]
+) =>
+  apiClient.patch<ApiResponse<null>>(
+    `/admin/courses/${courseId}/videos/reorder`,
+    { items }
+  );
+
+
+// BUNNY UPLOAD CREDENTIALS
 
 export interface VideoUploadCredentials {
   endpoint: string;
   headers: Record<string, string>;
 }
-export const getVideoUploadCredentials = (courseId: number, videoId: number) =>
-  apiClient.get<VideoUploadCredentials | ApiResponse<VideoUploadCredentials>>(
+
+export const getVideoUploadCredentials = (
+  courseId: number,
+  videoId: number
+) =>
+  apiClient.get<
+    VideoUploadCredentials |
+    ApiResponse<VideoUploadCredentials>
+  >(
     `/admin/courses/${courseId}/videos/${videoId}/upload-credentials`
   );
 
-export type VideoStatus = "pending_upload" | "processing" | "ready" | "failed";
-export const getAdminVideo = (courseId: number, videoId: number) =>
-  apiClient.get<ApiResponse<AdminVideo> | AdminVideo>(
-    `/admin/courses/${courseId}/videos/${videoId}`
-  );
+
+// VIDEO STATUS
+
+export type VideoStatus =
+  | "pending_upload"
+  | "processing"
+  | "ready"
+  | "failed";

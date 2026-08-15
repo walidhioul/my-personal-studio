@@ -117,7 +117,7 @@ export interface AdminEnrollment {
 export interface CreateEnrollmentPayload {
   user_id: number;
   course_id: number;
-  payment_status: "pending" | "paid" | "failed";
+  payment_status: "pending" | "completed" | "failed";
 }
 export const createEnrollment = (data: CreateEnrollmentPayload) =>
   apiClient.post<ApiResponse<AdminEnrollment>>("/admin/enrollments", data);

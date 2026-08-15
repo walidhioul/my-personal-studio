@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { useDashboard } from "@/hooks/useDashboard";
-import { apiClient } from "@/api/client";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -11,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import { submitFeedback } from "@/api/feedback";
 
 import {
   BookOpen, MessageSquare, User, BarChart3, Award, Star, Send, LogOut, Loader2,
@@ -42,24 +42,31 @@ const Dashboard = () => {
     }
   };
 
-  const handleFeedbackSubmit = async () => {
-    if (!feedbackComment.trim()) return;
-    setSubmitting(true);
-    try {
-      await apiClient.post("/feedbacks", {
-        course_id: feedbackCourse,
-        rating: feedbackRating,
-        comment: feedbackComment,
-      });
-      toast({ title: isRtl ? "تم الإرسال" : "Submitted!", description: isRtl ? "شكراً لملاحظاتك" : "Thanks for your feedback" });
-      setFeedbackComment("");
-      setFeedbackRating(5);
-    } catch {
-      toast({ title: "Error", description: isRtl ? "فشل الإرسال" : "Failed to submit feedback", variant: "destructive" });
-    } finally {
-      setSubmitting(false);
-    }
-  };
+ const handleFeedbackSubmit = async () => {
+  if (!feedbackComment.trim() || !feedbackCourse) return;
+  setSubmitting(true);
+  try {
+    await submitFeedback(feedbackCourse, {
+      rating: feedbackRating,
+      comment: feedbackComment,
+    });
+    toast({
+      title: isRtl ? "تم الإرسال" : "Submitted!",
+      description: isRtl ? "شكراً لملاحظاتك" : "Thanks for your feedback",
+    });
+    setFeedbackComment("");
+    setFeedbackRating(5);
+    setFeedbackCourse("");
+  } catch {
+    toast({
+      title: "Error",
+      description: isRtl ? "فشل الإرسال" : "Failed to submit feedback",
+      variant: "destructive",
+    });
+  } finally {
+    setSubmitting(false);
+  }
+};
 
   const enrolledCourses = dashboard?.courses || [];
   const overview = dashboard?.overview || {

@@ -71,7 +71,7 @@ const AdminEnrollments = () => {
     createMutation.mutate({
       user_id: +selectedUser,
       course_id: +selectedCourse,
-      payment_status: paymentStatus as "pending" | "paid" | "failed",
+      payment_status: paymentStatus as "pending" | "completed" | "failed",
     });
   };
 
@@ -150,7 +150,7 @@ const AdminEnrollments = () => {
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="pending">Pending</SelectItem>
-                      <SelectItem value="paid">Paid</SelectItem>
+                      <SelectItem value="completed">Completed</SelectItem>
                       <SelectItem value="failed">Failed</SelectItem>
                     </SelectContent>
                   </Select>

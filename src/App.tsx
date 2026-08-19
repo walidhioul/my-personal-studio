@@ -52,9 +52,9 @@ const App = () => (
               <Route
                 path="/admin"
                 element={
-                  //<AdminRoute>
+                 // <AdminRoute>
                     <AdminLayout />
-                 // </AdminRoute>
+                // </AdminRoute>
                 }
               >
                 <Route index element={<AdminOverview />} />

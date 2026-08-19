@@ -7,9 +7,11 @@ class ApiClient {
     this.baseUrl = baseUrl;
   }
 
-  private getHeaders(hasBody: boolean = true): HeadersInit {
+  private getHeaders(hasBody: boolean = true, isFormData: boolean = false): HeadersInit {
     const headers: HeadersInit = { Accept: "application/json" };
-    if (hasBody) headers["Content-Type"] = "application/json";
+    // Only set JSON content-type for plain object bodies.
+    // For FormData, the browser sets Content-Type (incl. multipart boundary) automatically.
+    if (hasBody && !isFormData) headers["Content-Type"] = "application/json";
     const token = localStorage.getItem("auth_token");
     if (token) headers["Authorization"] = `Bearer ${token}`;
     return headers;
@@ -41,31 +43,34 @@ class ApiClient {
   }
 
   async post<T>(endpoint: string, data?: unknown): Promise<T> {
+    const isFormData = data instanceof FormData;
     const res = await fetch(`${this.baseUrl}${endpoint}`, {
       method: "POST",
-      headers: this.getHeaders(true),
+      headers: this.getHeaders(true, isFormData),
       credentials: "include",
-      body: data ? JSON.stringify(data) : undefined,
+      body: isFormData ? (data as FormData) : data ? JSON.stringify(data) : undefined,
     });
     return this.handleResponse<T>(res);
   }
 
   async put<T>(endpoint: string, data?: unknown): Promise<T> {
+    const isFormData = data instanceof FormData;
     const res = await fetch(`${this.baseUrl}${endpoint}`, {
       method: "PUT",
-      headers: this.getHeaders(true),
+      headers: this.getHeaders(true, isFormData),
       credentials: "include",
-      body: data ? JSON.stringify(data) : undefined,
+      body: isFormData ? (data as FormData) : data ? JSON.stringify(data) : undefined,
     });
     return this.handleResponse<T>(res);
   }
 
   async patch<T>(endpoint: string, data?: unknown): Promise<T> {
+    const isFormData = data instanceof FormData;
     const res = await fetch(`${this.baseUrl}${endpoint}`, {
       method: "PATCH",
-      headers: this.getHeaders(true),
+      headers: this.getHeaders(true, isFormData),
       credentials: "include",
-      body: data ? JSON.stringify(data) : undefined,
+      body: isFormData ? (data as FormData) : data ? JSON.stringify(data) : undefined,
     });
     return this.handleResponse<T>(res);
   }

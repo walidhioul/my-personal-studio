@@ -1,15 +1,16 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { calculateLevelFromScore, levelColors } from "@/data/quizData";
 import { Clock, ListChecks, CheckCircle2, Loader2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { fetchEvaluationQuizzes, submitPlacementResult, type EvaluationQuiz } from "@/api/quiz";
+import { submitPlacementResult, type EvaluationQuiz } from "@/api/quiz";
+
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "@/hooks/use-toast";
+import { useEvaluationQuizzes } from "@/hooks/useEvaluationQuiz";
 
 const PlacementTest = () => {
   const { lang } = useLanguage();
@@ -18,10 +19,7 @@ const PlacementTest = () => {
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [submitting, setSubmitting] = useState(false);
 
-  const { data: quizzes, isLoading, isError } = useQuery({
-    queryKey: ["evaluation-quizzes"],
-    queryFn: fetchEvaluationQuizzes,
-  });
+  const { data: quizzes, isLoading, isError } = useEvaluationQuizzes();
 
   const quiz: EvaluationQuiz | undefined = quizzes?.[0];
   const questions = quiz?.questions ? [...quiz.questions].sort((a, b) => a.order - b.order) : [];
@@ -92,7 +90,6 @@ const PlacementTest = () => {
             </div>
           </div>
           <div className="flex items-center gap-6 text-sm text-muted-foreground">
-            <span className="flex items-center gap-1.5"><Clock size={16} /> {lang === "en" ? "45 minutes" : "45 دقيقة"}</span>
             <span className="flex items-center gap-1.5"><ListChecks size={16} /> {total} {lang === "en" ? "Questions" : "سؤال"}</span>
           </div>
         </div>

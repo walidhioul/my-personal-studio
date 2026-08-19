@@ -21,16 +21,42 @@ export interface AdminCourse {
   title: string;
   slug?: string;
   description?: string;
-  level: string;
+  level: string; // A1 | A2 | B1 | B2 | C1 | C2
   price: number;
   thumbnail?: string | null;
   picture?: string | null;
 }
+
+export interface CourseFormPayload {
+  title: string;
+  slug: string;
+  description: string;
+  level: string;
+  price: number;
+  thumbnail?: File | null; // required on create, optional on update
+}
+
+const buildCourseFormData = (data: CourseFormPayload, method?: "PUT") => {
+  const fd = new FormData();
+  fd.append("title", data.title);
+  fd.append("slug", data.slug);
+  fd.append("description", data.description);
+  fd.append("level", data.level);
+  fd.append("price", String(data.price));
+  if (data.thumbnail) fd.append("thumbnail", data.thumbnail);
+  if (method) fd.append("_method", method); // Laravel multipart PUT workaround
+  return fd;
+};
+
 export const listAdminCourses = () => apiClient.get<ApiResponse<AdminCourse[]>>("/admin/courses?per_page=1000");
-export const createCourse = (data: Partial<AdminCourse>) =>
-  apiClient.post<ApiResponse<AdminCourse>>("/admin/courses", data);
-export const updateCourse = (id: number, data: Partial<AdminCourse>) =>
-  apiClient.put<ApiResponse<AdminCourse>>(`/admin/courses/${id}`, data);
+
+export const createCourse = (data: CourseFormPayload) =>
+  apiClient.post<ApiResponse<AdminCourse>>("/admin/courses", buildCourseFormData(data));
+
+export const updateCourse = (id: number, data: CourseFormPayload) =>
+  apiClient.post<ApiResponse<AdminCourse>>(`/admin/courses/${id}`, buildCourseFormData(data, "PUT"));
+
+
 export const deleteCourse = (id: number) =>
   apiClient.delete<ApiResponse<null>>(`/admin/courses/${id}`);
 

@@ -11,7 +11,16 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Trash2, Pencil, Plus, ChevronRight } from "lucide-react";
 
-const emptyCourse = { title: "", description: "", level: "Beginner", price: 0, thumbnail: "" };
+const emptyCourse = {
+  title: "",
+  slug: "",
+  description: "",
+  level: "A1",
+  price: "",
+  thumbnail: null as File | null,
+};
+
+const CEFR_LEVELS = ["A1", "A2", "B1", "B2", "C1", "C2"];
 
 const AdminCourses = () => {
   const qc = useQueryClient();
@@ -24,21 +33,46 @@ const AdminCourses = () => {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<admin.AdminCourse | null>(null);
   const [form, setForm] = useState<any>(emptyCourse);
+  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
   const [selected, setSelected] = useState<admin.AdminCourse | null>(null);
 
   const refresh = () => qc.invalidateQueries({ queryKey: ["admin", "courses"] });
 
-  const openCreate = () => { setEditing(null); setForm(emptyCourse); setOpen(true); };
+  const openCreate = () => {
+    setEditing(null);
+    setForm(emptyCourse);
+    setThumbnailPreview(null);
+    setOpen(true);
+  };
   const openEdit = (c: admin.AdminCourse) => {
     setEditing(c);
-    setForm({ title: c.title, description: c.description || "", level: c.level, price: c.price, thumbnail: c.thumbnail || "" });
+    setForm({
+      title: c.title,
+      slug: c.slug || "",
+      description: c.description || "",
+      level: c.level,
+      price: String(c.price ?? ""),
+      thumbnail: null,
+    });
+    setThumbnailPreview(c.thumbnail || null);
     setOpen(true);
   };
 
+  const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    setForm({ ...form, thumbnail: file });
+    if (file) setThumbnailPreview(URL.createObjectURL(file));
+  };
+
   const submit = async () => {
+    if (!editing && !form.thumbnail) {
+      toast.error("Thumbnail is required");
+      return;
+    }
+    const payload = { ...form, price: Number(form.price) || 0 };
     try {
-      if (editing) { await admin.updateCourse(editing.id, form); toast.success("Course updated"); }
-      else { await admin.createCourse(form); toast.success("Course created"); }
+      if (editing) { await admin.updateCourse(editing.id, payload); toast.success("Course updated"); }
+      else { await admin.createCourse(payload); toast.success("Course created"); }
       setOpen(false); refresh();
     } catch (e) { toast.error((e as Error).message); }
   };
@@ -62,17 +96,28 @@ const AdminCourses = () => {
             <DialogHeader><DialogTitle>{editing ? "Edit Course" : "Create Course"}</DialogTitle></DialogHeader>
             <div className="space-y-3">
               <Input placeholder="Title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+              <Input placeholder="Slug" value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} />
               <Textarea placeholder="Description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
               <Select value={form.level} onValueChange={(v) => setForm({ ...form, level: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Beginner">Beginner</SelectItem>
-                  <SelectItem value="Intermediate">Intermediate</SelectItem>
-                  <SelectItem value="Advanced">Advanced</SelectItem>
+                  {CEFR_LEVELS.map((lvl) => (
+                    <SelectItem key={lvl} value={lvl}>{lvl}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
-              <Input placeholder="Price" type="number" value={form.price} onChange={(e) => setForm({ ...form, price: parseFloat(e.target.value) || 0 })} />
-              <Input placeholder="Thumbnail path" value={form.thumbnail} onChange={(e) => setForm({ ...form, thumbnail: e.target.value })} />
+              <Input
+                placeholder="Price (DZD)"
+                type="number"
+                value={form.price}
+                onChange={(e) => setForm({ ...form, price: e.target.value })}
+              />
+              <div className="space-y-2">
+                <Input type="file" accept="image/*" onChange={handleThumbnailChange} />
+                {thumbnailPreview && (
+                  <img src={thumbnailPreview} alt="Thumbnail preview" className="h-24 w-24 object-cover rounded border" />
+                )}
+              </div>
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>

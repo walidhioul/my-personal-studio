@@ -843,58 +843,6 @@ const AdminVideos = () => {
 
         <div className="flex items-center gap-2">
 
-          {/* COURSE FILTER */}
-
-          <Select
-            value={
-              courseFilter ===
-              "all"
-                ? "all"
-                : String(
-                    courseFilter
-                  )
-            }
-            onValueChange={(
-              v
-            ) =>
-              setCourseFilter(
-                v === "all"
-                  ? "all"
-                  : Number(v)
-              )
-            }
-          >
-
-            <SelectTrigger className="w-56">
-              <SelectValue placeholder="Filter by course" />
-            </SelectTrigger>
-
-            <SelectContent>
-
-              <SelectItem value="all">
-                All courses
-              </SelectItem>
-
-              {courses.map(
-                (c) => (
-
-                  <SelectItem
-                    key={c.id}
-                    value={String(
-                      c.id
-                    )}
-                  >
-                    {c.title}
-                  </SelectItem>
-
-                )
-              )}
-
-            </SelectContent>
-
-          </Select>
-
-
           {/* REORDER */}
 
           <Button

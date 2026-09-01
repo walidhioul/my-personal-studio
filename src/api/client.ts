@@ -19,11 +19,16 @@ class ApiClient {
 
   private async handleResponse<T>(res: Response): Promise<T> {
     if (res.status === 401) {
+      // Session is gone: drop the token and send the user to login once
+      // (guard against redirect loops when already on the login page).
       localStorage.removeItem("auth_token");
-      window.location.href = "/login";
+      if (!window.location.pathname.startsWith("/login")) {
+        window.location.replace("/login");
+      }
       throw new Error("Unauthorized");
     }
-    if (res.status === 403) throw new Error("Forbidden");
+    // 403 = authenticated but not allowed. Keep the session; never log out.
+    if (res.status === 403) throw new Error("You are not allowed to perform this action");
     if (res.status === 404) throw new Error("Not found");
     if (res.status === 204) return undefined as T;
     if (!res.ok) {

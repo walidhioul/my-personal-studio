@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/context/AuthContext";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { useDashboard } from "@/hooks/useDashboard";
@@ -24,6 +25,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const isRtl = lang === "ar";
   const { data: dashboard, isLoading } = useDashboard();
+  const queryClient = useQueryClient();
 
   const [feedbackCourse, setFeedbackCourse] = useState("");
   const [feedbackRating, setFeedbackRating] = useState(5);
@@ -57,6 +59,9 @@ const Dashboard = () => {
     setFeedbackComment("");
     setFeedbackRating(5);
     setFeedbackCourse("");
+    // Targeted invalidation: only the caches this mutation can change.
+    queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+    queryClient.invalidateQueries({ queryKey: ["feedbacks"] });
   } catch {
     toast({
       title: "Error",

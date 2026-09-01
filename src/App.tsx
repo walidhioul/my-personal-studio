@@ -27,6 +27,7 @@ import AdminVideos from "./pages/admin/AdminVideos";
 import AdminResources from "./pages/admin/AdminResources";
 import AdminFeedbacks from "./pages/admin/AdminFeedbacks";
 import AdminEvaluationQuizzes from "./pages/admin/AdminEvaluationQuizzes";
+import PaymentPage from "./pages/PaymentPage";
 
 
 const queryClient = new QueryClient();
@@ -49,6 +50,7 @@ const App = () => (
               <Route path="/courses" element={<Courses />} />
                <Route path="/courses/:id" element={<CourseDetails />} />
                <Route path="/courses/:id/learn" element={<CoursePlayer />} />
+                <Route path="/courses/:id/payment" element={<PaymentPage />} />
               <Route
                 path="/admin"
                 element={
@@ -57,6 +59,7 @@ const App = () => (
                 // </AdminRoute>
                 }
               >
+           
                 <Route index element={<AdminOverview />} />
                 <Route path="users" element={<AdminUsers />} />
                 <Route path="courses" element={<AdminCourses />} />

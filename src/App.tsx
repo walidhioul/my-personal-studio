@@ -30,7 +30,18 @@ import AdminEvaluationQuizzes from "./pages/admin/AdminEvaluationQuizzes";
 import PaymentPage from "./pages/PaymentPage";
 
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      // Sensible defaults: no refetch storms on focus/remount, short retry.
+      staleTime: 2 * 60 * 1000,
+      gcTime: 10 * 60 * 1000,
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+      retry: 1,
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -54,9 +65,9 @@ const App = () => (
               <Route
                 path="/admin"
                 element={
-                 // <AdminRoute>
+                  <AdminRoute>
                     <AdminLayout />
-                // </AdminRoute>
+                  </AdminRoute>
                 }
               >
            

@@ -23,7 +23,6 @@ const Login = () => {
     try {
       await login({ email, password });
       navigate("/courses");
-      localStorage.getItem("token");
     } catch (error) {
       // Type guard to make TS happy
       if (error instanceof Error) {

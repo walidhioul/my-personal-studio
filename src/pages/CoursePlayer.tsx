@@ -77,6 +77,20 @@ const formatFileSize = (bytes: number | null | undefined): string => {
 /* Component                                                                  */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * Only ever hand http(s) URLs to the browser. Blocks javascript:/data: URLs if
+ * a malicious or malformed value ever reaches the client from the API.
+ */
+const safeUrl = (url?: string | null): string | null => {
+  if (!url) return null;
+  try {
+    const parsed = new URL(url, window.location.origin);
+    return parsed.protocol === "https:" || parsed.protocol === "http:" ? parsed.href : null;
+  } catch {
+    return null;
+  }
+};
+
 const CoursePlayer = () => {
   const { id } = useParams<{ id: string }>();
 
@@ -280,7 +294,7 @@ const CoursePlayer = () => {
         resourceId,
       });
 
-      const downloadUrl = response.data.download_url;
+      const downloadUrl = safeUrl(response.data.download_url);
 
       if (!downloadUrl) {
         throw new Error("Download URL was not returned.");
@@ -417,10 +431,11 @@ const CoursePlayer = () => {
           {/* =============================================================== */}
 
           <div className="bg-black aspect-video w-full">
-            {currentLesson?.player_url && currentLesson.status === "ready" ? (
+            {safeUrl(currentLesson?.player_url) && currentLesson.status === "ready" ? (
               <iframe
                 key={currentLesson.id}
-                src={currentLesson.player_url}
+                src={safeUrl(currentLesson.player_url)!}
+                referrerPolicy="strict-origin-when-cross-origin"
                 title={currentLesson.title}
                 className="w-full h-full"
                 allowFullScreen

@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, ReactNode } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { User, LoginData, RegisterData } from "../types/auth";
 import * as authApi from "../api/auth";
 
@@ -13,60 +14,59 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+/** Single source of truth for the /auth/me cache. */
+export const authKeys = {
+  me: ["auth", "me"] as const,
+};
+
+const hasToken = () => Boolean(localStorage.getItem("auth_token"));
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const qc = useQueryClient();
 
-  // Only call /auth/me on mount if a token already exists
-  useEffect(() => {
-    const token = localStorage.getItem("auth_token");
-    if (!token) {
-      setLoading(false);
-      return;
-    }
-    refreshUser().finally(() => setLoading(false));
-  }, []);
+  // /auth/me is a React Query cache entry: one request per session (even under
+  // StrictMode double-mount), shared by every consumer of useAuth().
+  const { data: user = null, isLoading } = useQuery({
+    queryKey: authKeys.me,
+    queryFn: authApi.getUser, // never throws, resolves null on failure
+    enabled: hasToken(),
+    staleTime: Infinity,
+    gcTime: Infinity,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    retry: false,
+  });
 
-  // Fetch /auth/me to rehydrate session (e.g. on page refresh)
   const refreshUser = async () => {
-    const currentUser = await authApi.getUser(); // never throws, returns null on failure
-    setUser(currentUser);
+    await qc.invalidateQueries({ queryKey: authKeys.me });
   };
 
-  // Set user directly from login response — no extra /auth/me round trip needed
+  // Login/register responses already contain the user — seed the cache instead
+  // of triggering an extra /auth/me round trip.
   const login = async (data: LoginData) => {
-    try {
-      const user = await authApi.login(data);
-      setUser(user);
-    } catch (err: unknown) {
-      if (err instanceof Error) throw new Error(err.message);
-      throw new Error("Login failed");
-    }
+    const loggedIn = await authApi.login(data);
+    qc.setQueryData(authKeys.me, loggedIn);
+  };
+
+  const register = async (data: RegisterData) => {
+    const registered = await authApi.register(data);
+    qc.setQueryData(authKeys.me, registered);
   };
 
   const logout = async () => {
     try {
       await authApi.logout();
-      setUser(null);
-    } catch (err: unknown) {
-      if (err instanceof Error) throw new Error(err.message);
-      throw new Error("Logout failed");
-    }
-  };
-
-  // Set user directly from register response — no extra /auth/me round trip needed
-  const register = async (data: RegisterData) => {
-    try {
-      const user = await authApi.register(data);
-      setUser(user);
-    } catch (err: unknown) {
-      if (err instanceof Error) throw new Error(err.message);
-      throw new Error("Registration failed");
+    } finally {
+      // Never keep another user's data in cache after sign-out.
+      qc.setQueryData(authKeys.me, null);
+      qc.clear();
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, register, refreshUser }}>
+    <AuthContext.Provider
+      value={{ user, loading: hasToken() ? isLoading : false, login, logout, register, refreshUser }}
+    >
       {children}
     </AuthContext.Provider>
   );

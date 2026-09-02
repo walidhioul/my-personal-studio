@@ -233,7 +233,7 @@ const Dashboard = () => {
                   {completedCoursesCount === 0 ? (
                     <Card className="border-border">
                       <CardContent className="p-8 text-center">
-                        <FileAward className="mx-auto mb-4 text-muted-foreground" size={48} />
+                        <Award className="mx-auto mb-4 text-muted-foreground" size={48} />
                         <p className="text-muted-foreground">
                           {isRtl ? "لا توجد شهادات بعد. أكمل دورة للحصول على شهادة." : "No certificates yet. Complete a course to earn one."}
                         </p>

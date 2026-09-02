@@ -14,8 +14,9 @@ import { Input } from "@/components/ui/input";
 import { submitFeedback } from "@/api/feedback";
 
 import {
-  BookOpen, MessageSquare, User, BarChart3, Award, Star, Send, LogOut, Loader2,
+  BookOpen, MessageSquare, User, BarChart3, Award, Star, Send, LogOut, Loader2, Download, FileAward,
 } from "lucide-react";
+import { apiClient } from "@/api/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 

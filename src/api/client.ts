@@ -47,6 +47,30 @@ class ApiClient {
     return this.handleResponse<T>(res);
   }
 
+  // Fetch a binary response (e.g. a generated image/PDF) as a Blob.
+  // Reuses the same auth/error handling as get(), but returns raw bytes.
+  async getBlob(endpoint: string): Promise<Blob> {
+    const res = await fetch(`${this.baseUrl}${endpoint}`, {
+      method: "GET",
+      headers: this.getHeaders(false),
+      credentials: "include",
+    });
+    if (res.status === 401) {
+      localStorage.removeItem("auth_token");
+      if (!window.location.pathname.startsWith("/login")) {
+        window.location.replace("/login");
+      }
+      throw new Error("Unauthorized");
+    }
+    if (res.status === 403) throw new Error("You are not allowed to perform this action");
+    if (res.status === 404) throw new Error("Not found");
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.message || `Request failed (${res.status})`);
+    }
+    return res.blob();
+  }
+
   async post<T>(endpoint: string, data?: unknown): Promise<T> {
     const isFormData = data instanceof FormData;
     const res = await fetch(`${this.baseUrl}${endpoint}`, {

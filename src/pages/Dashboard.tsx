@@ -136,10 +136,14 @@ const Dashboard = () => {
             </div>
 
             <Tabs defaultValue="courses" className="space-y-6">
-              <TabsList className="grid w-full grid-cols-3 lg:w-auto lg:inline-grid">
+              <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-grid">
                 <TabsTrigger value="courses" className="gap-2">
                   <BookOpen size={16} />
                   <span className="hidden sm:inline">{isRtl ? "دوراتي" : "My Courses"}</span>
+                </TabsTrigger>
+                <TabsTrigger value="certificates" className="gap-2">
+                  <Award size={16} />
+                  <span className="hidden sm:inline">{isRtl ? "الشهادات" : "Certificates"}</span>
                 </TabsTrigger>
                 <TabsTrigger value="feedback" className="gap-2">
                   <MessageSquare size={16} />

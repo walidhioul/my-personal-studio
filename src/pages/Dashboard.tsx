@@ -76,6 +76,31 @@ const Dashboard = () => {
   }
 };
 
+  const handleDownloadCertificate = async (courseId: number, courseTitle: string) => {
+    setDownloadingCert(courseId);
+    try {
+      const blob = await apiClient.getBlob(`/courses/${courseId}/certificate`);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      // Pull the file extension from the blob type (image/png, image/jpeg, …)
+      const ext = blob.type.split("/")[1] || "png";
+      a.download = `${courseTitle.replace(/[^a-z0-9]+/gi, "_")}_certificate.${ext}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch {
+      toast({
+        title: isRtl ? "خطأ" : "Error",
+        description: isRtl ? "تعذر تنزيل الشهادة" : "Failed to download certificate",
+        variant: "destructive",
+      });
+    } finally {
+      setDownloadingCert(null);
+    }
+  };
+
   const enrolledCourses = dashboard?.courses || [];
   const overview = dashboard?.overview || {
     profile: { name: user?.name || "", email: user?.email || "" },

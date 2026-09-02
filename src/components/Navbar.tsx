@@ -11,6 +11,10 @@ const Navbar = () => {
   const { t, lang, setLang } = useLanguage();
   const { user } = useAuth();
 
+  // Route the Dashboard button to the admin panel for admins, student dashboard otherwise.
+  const dashboardPath = user?.role === "admin" ? "/admin" : "/dashboard";
+  const dashboardLabel = lang === "en" ? "Dashboard" : "لوحة التحكم";
+
   const navLinks = [
     { label: t.nav.home, href: "/" },
     { label: t.nav.courses, href: "/courses" },
@@ -42,7 +46,7 @@ const Navbar = () => {
           </Button>
           {user ? (
             <Button size="sm" asChild>
-              <Link to="/dashboard">{lang === "en" ? "Dashboard" : "لوحة التحكم"}</Link>
+              <Link to={dashboardPath}>{dashboardLabel}</Link>
             </Button>
           ) : (
             <>
@@ -72,7 +76,7 @@ const Navbar = () => {
             ))}
             <div className="flex gap-2 pt-2">
               {user ? (
-                <Button size="sm" asChild><Link to="/dashboard">{lang === "en" ? "Dashboard" : "لوحة التحكم"}</Link></Button>
+                <Button size="sm" asChild><Link to={dashboardPath}>{dashboardLabel}</Link></Button>
               ) : (
                 <>
                   <Button variant="ghost" size="sm" asChild><Link to="/login">{t.nav.login}</Link></Button>

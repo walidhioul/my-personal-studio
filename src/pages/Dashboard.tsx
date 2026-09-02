@@ -14,8 +14,9 @@ import { Input } from "@/components/ui/input";
 import { submitFeedback } from "@/api/feedback";
 
 import {
-  BookOpen, MessageSquare, User, BarChart3, Award, Star, Send, LogOut, Loader2,
+  BookOpen, MessageSquare, User, BarChart3, Award, Star, Send, LogOut, Loader2, Download,
 } from "lucide-react";
+import { apiClient } from "@/api/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 
@@ -31,6 +32,8 @@ const Dashboard = () => {
   const [feedbackRating, setFeedbackRating] = useState(5);
   const [feedbackComment, setFeedbackComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  const [downloadingCert, setDownloadingCert] = useState<number | null>(null);
 
   const [editName, setEditName] = useState(user?.name || "");
   const [editEmail, setEditEmail] = useState(user?.email || "");
@@ -72,6 +75,31 @@ const Dashboard = () => {
     setSubmitting(false);
   }
 };
+
+  const handleDownloadCertificate = async (courseId: number, courseTitle: string) => {
+    setDownloadingCert(courseId);
+    try {
+      const blob = await apiClient.getBlob(`/courses/${courseId}/certificate`);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      // Pull the file extension from the blob type (image/png, image/jpeg, …)
+      const ext = blob.type.split("/")[1] || "png";
+      a.download = `${courseTitle.replace(/[^a-z0-9]+/gi, "_")}_certificate.${ext}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch {
+      toast({
+        title: isRtl ? "خطأ" : "Error",
+        description: isRtl ? "تعذر تنزيل الشهادة" : "Failed to download certificate",
+        variant: "destructive",
+      });
+    } finally {
+      setDownloadingCert(null);
+    }
+  };
 
   const enrolledCourses = dashboard?.courses || [];
   const overview = dashboard?.overview || {
@@ -135,10 +163,14 @@ const Dashboard = () => {
             </div>
 
             <Tabs defaultValue="courses" className="space-y-6">
-              <TabsList className="grid w-full grid-cols-3 lg:w-auto lg:inline-grid">
+              <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-grid">
                 <TabsTrigger value="courses" className="gap-2">
                   <BookOpen size={16} />
                   <span className="hidden sm:inline">{isRtl ? "دوراتي" : "My Courses"}</span>
+                </TabsTrigger>
+                <TabsTrigger value="certificates" className="gap-2">
+                  <Award size={16} />
+                  <span className="hidden sm:inline">{isRtl ? "الشهادات" : "Certificates"}</span>
                 </TabsTrigger>
                 <TabsTrigger value="feedback" className="gap-2">
                   <MessageSquare size={16} />
@@ -192,6 +224,63 @@ const Dashboard = () => {
                         </CardContent>
                       </Card>
                     ))
+                  )}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="certificates">
+                <div className="grid gap-4">
+                  {completedCoursesCount === 0 ? (
+                    <Card className="border-border">
+                      <CardContent className="p-8 text-center">
+                        <Award className="mx-auto mb-4 text-muted-foreground" size={48} />
+                        <p className="text-muted-foreground">
+                          {isRtl ? "لا توجد شهادات بعد. أكمل دورة للحصول على شهادة." : "No certificates yet. Complete a course to earn one."}
+                        </p>
+                        <Button className="mt-4" onClick={() => navigate("/courses")}>
+                          {isRtl ? "تصفح الدورات" : "Browse Courses"}
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    enrolledCourses
+                      .filter((course) => course.payment_status === "completed")
+                      .map((course) => {
+                        const courseId = course.course_id ?? course.id;
+                        return (
+                          <Card key={courseId} className="border-border">
+                            <CardContent className="p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                              <div className="flex-1 flex items-center gap-3">
+                                <div className="p-2 rounded-lg bg-purple-500/10 text-purple-500">
+                                  <Award size={22} />
+                                </div>
+                                <div>
+                                  <h3 className="font-semibold text-foreground">{course.title}</h3>
+                                  <p className="text-xs text-muted-foreground">
+                                    {isRtl ? "أكملت هذه الدورة" : "Course completed"}
+                                  </p>
+                                </div>
+                              </div>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="gap-2"
+                                disabled={downloadingCert === courseId}
+                                onClick={() => handleDownloadCertificate(courseId, course.title)}
+                              >
+                                {downloadingCert === courseId ? (
+                                  <Loader2 size={16} className="animate-spin" />
+                                ) : (
+                                  <Download size={16} />
+                                )}
+                                {downloadingCert === courseId
+                                  ? (isRtl ? "جاري التنزيل..." : "Downloading...")
+                                  : (isRtl ? "تنزيل الشهادة" : "Download Certificate")}
+                              </Button>
+                            </CardContent>
+                          </Card>
+                        );
+                      })
                   )}
                 </div>
               </TabsContent>

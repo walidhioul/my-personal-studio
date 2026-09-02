@@ -33,6 +33,8 @@ const Dashboard = () => {
   const [feedbackComment, setFeedbackComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  const [downloadingCert, setDownloadingCert] = useState<number | null>(null);
+
   const [editName, setEditName] = useState(user?.name || "");
   const [editEmail, setEditEmail] = useState(user?.email || "");
 

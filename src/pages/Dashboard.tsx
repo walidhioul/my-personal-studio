@@ -228,6 +228,63 @@ const Dashboard = () => {
                 </div>
               </TabsContent>
 
+              <TabsContent value="certificates">
+                <div className="grid gap-4">
+                  {completedCoursesCount === 0 ? (
+                    <Card className="border-border">
+                      <CardContent className="p-8 text-center">
+                        <FileAward className="mx-auto mb-4 text-muted-foreground" size={48} />
+                        <p className="text-muted-foreground">
+                          {isRtl ? "لا توجد شهادات بعد. أكمل دورة للحصول على شهادة." : "No certificates yet. Complete a course to earn one."}
+                        </p>
+                        <Button className="mt-4" onClick={() => navigate("/courses")}>
+                          {isRtl ? "تصفح الدورات" : "Browse Courses"}
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    enrolledCourses
+                      .filter((course) => course.payment_status === "completed")
+                      .map((course) => {
+                        const courseId = course.course_id ?? course.id;
+                        return (
+                          <Card key={courseId} className="border-border">
+                            <CardContent className="p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                              <div className="flex-1 flex items-center gap-3">
+                                <div className="p-2 rounded-lg bg-purple-500/10 text-purple-500">
+                                  <Award size={22} />
+                                </div>
+                                <div>
+                                  <h3 className="font-semibold text-foreground">{course.title}</h3>
+                                  <p className="text-xs text-muted-foreground">
+                                    {isRtl ? "أكملت هذه الدورة" : "Course completed"}
+                                  </p>
+                                </div>
+                              </div>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="gap-2"
+                                disabled={downloadingCert === courseId}
+                                onClick={() => handleDownloadCertificate(courseId, course.title)}
+                              >
+                                {downloadingCert === courseId ? (
+                                  <Loader2 size={16} className="animate-spin" />
+                                ) : (
+                                  <Download size={16} />
+                                )}
+                                {downloadingCert === courseId
+                                  ? (isRtl ? "جاري التنزيل..." : "Downloading...")
+                                  : (isRtl ? "تنزيل الشهادة" : "Download Certificate")}
+                              </Button>
+                            </CardContent>
+                          </Card>
+                        );
+                      })
+                  )}
+                </div>
+              </TabsContent>
+
               <TabsContent value="feedback">
                 <Card className="border-border">
                   <CardHeader>

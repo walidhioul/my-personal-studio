@@ -90,10 +90,18 @@ const Dashboard = () => {
       a.click();
       a.remove();
       window.URL.revokeObjectURL(url);
-    } catch {
+    } catch (err) {
+      const backendMessage =
+        err instanceof Error && err.message && err.message !== "Unauthorized"
+          ? err.message
+          : "";
       toast({
-        title: isRtl ? "خطأ" : "Error",
-        description: isRtl ? "تعذر تنزيل الشهادة" : "Failed to download certificate",
+        title: isRtl ? "تعذر تنزيل الشهادة" : "Certificate unavailable",
+        description:
+          backendMessage ||
+          (isRtl
+            ? "تعذر تنزيل الشهادة"
+            : "Failed to download certificate"),
         variant: "destructive",
       });
     } finally {

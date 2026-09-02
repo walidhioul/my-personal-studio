@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { submitFeedback } from "@/api/feedback";
 
 import {
-  BookOpen, MessageSquare, User, BarChart3, Award, Star, Send, LogOut, Loader2, Download, FileAward,
+  BookOpen, MessageSquare, User, BarChart3, Award, Star, Send, LogOut, Loader2, Download,
 } from "lucide-react";
 import { apiClient } from "@/api/client";
 import { useNavigate } from "react-router-dom";

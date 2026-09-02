@@ -68,6 +68,16 @@ class ApiClient {
       const body = await res.json().catch(() => ({}));
       throw new Error(body.message || `Request failed (${res.status})`);
     }
+    // A JSON body here means the backend declined to send the binary file
+    // (e.g. certificate not earned yet). Surface its message instead of
+    // downloading the JSON payload as a fake image.
+    const contentType = res.headers.get("content-type") || "";
+    if (contentType.includes("application/json")) {
+      const body = await res.json().catch(() => ({}));
+      if (body && body.success === false) {
+        throw new Error(body.message || "Certificate not available");
+      }
+    }
     return res.blob();
   }
 

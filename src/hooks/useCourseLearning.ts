@@ -65,3 +65,26 @@ export const useAccessCourseResource = () => {
       ),
   });
 };
+/* -------------------------------------------------------------------------- */
+/* Mark a video as completed                                                  */
+/* -------------------------------------------------------------------------- */
+
+export const useCompleteVideo = () => {
+  return useMutation({
+    mutationFn: ({
+      courseId,
+      videoId,
+    }: {
+      courseId: number;
+      videoId: number;
+    }) => courseLearningApi.completeVideo(courseId, videoId),
+
+    /*
+     * Playback must never be interrupted, so failures are
+     * only logged. The next watch session will retry.
+     */
+    onError: (error) => {
+      console.error("Failed to mark video as completed:", error);
+    },
+  });
+};

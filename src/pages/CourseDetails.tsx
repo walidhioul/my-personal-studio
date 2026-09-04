@@ -65,7 +65,7 @@ const CourseDetails = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
             <div className="rounded-xl overflow-hidden aspect-video">
-              <img src={course.thumbnail || course.picture || "/placeholder.svg"} alt={course.title} className="w-full h-full object-cover" />
+              <img src={course.thumbnail_url || course.thumbnail || course.picture || "/placeholder.svg"} alt={course.title} className="w-full h-full object-cover" />
             </div>
             <div>
               <div className="flex items-center gap-2 mb-3">

@@ -154,7 +154,7 @@ const Courses = () => {
                 <div key={course.id} className="bg-card border border-border rounded-xl overflow-hidden hover:shadow-lg transition-shadow group">
                   <div className="h-44 overflow-hidden bg-muted">
                     <img
-                      src={resolveAsset(course.thumbnail || course.picture)}
+                      src={resolveAsset(course.thumbnail_url || course.thumbnail || course.picture)}
                       alt={course.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       loading="lazy"

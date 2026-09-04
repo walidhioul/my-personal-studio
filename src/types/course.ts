@@ -4,6 +4,7 @@ export interface ApiCourse {
   slug: string;
   description: string;
   thumbnail: string | null;
+  thumbnail_url?: string | null;
   picture: string | null;
   price: number;
   level: string;

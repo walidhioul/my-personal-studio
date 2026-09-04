@@ -1,6 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
-import { useParams, Link } from "react-router-dom";
-
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { useLanguage } from "@/i18n/LanguageContext";
 import {
   useCourseLearning,
@@ -87,13 +86,16 @@ const safeUrl = (url?: string | null): string | null => {
   if (!url) return null;
   try {
     const parsed = new URL(url, window.location.origin);
-    return parsed.protocol === "https:" || parsed.protocol === "http:" ? parsed.href : null;
+    return parsed.protocol === "https:" || parsed.protocol === "http:"
+      ? parsed.href
+      : null;
   } catch {
     return null;
   }
 };
 
 const CoursePlayer = () => {
+  const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
 
   const { lang } = useLanguage();
@@ -199,7 +201,8 @@ const CoursePlayer = () => {
   const { iframeRef } = useVideoWatchTracker({
     videoId: currentLesson?.id,
     duration: currentLesson?.duration,
-    enabled: Boolean(courseId) && isEnrolled && currentLesson?.status === "ready",
+    enabled:
+      Boolean(courseId) && isEnrolled && currentLesson?.status === "ready",
     onThreshold: handleWatchThreshold,
   });
 
@@ -363,16 +366,16 @@ const CoursePlayer = () => {
 
       <header className="h-14 bg-card border-b border-border flex items-center px-4 gap-3 sticky top-0 z-50">
         {/* Back */}
-        <Link
-          to={`/courses/${id}`}
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
           className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors shrink-0"
         >
           {isRtl ? <ArrowRight size={16} /> : <ArrowLeft size={16} />}
-
           <span className="hidden sm:inline">
             {lang === "en" ? "Back" : "رجوع"}
           </span>
-        </Link>
+        </button>
 
         <div className="h-5 w-px bg-border" />
 
@@ -469,7 +472,8 @@ const CoursePlayer = () => {
           {/* =============================================================== */}
 
           <div className="bg-black aspect-video w-full">
-            {safeUrl(currentLesson?.player_url) && currentLesson.status === "ready" ? (
+            {safeUrl(currentLesson?.player_url) &&
+            currentLesson.status === "ready" ? (
               <iframe
                 ref={iframeRef}
                 key={currentLesson.id}

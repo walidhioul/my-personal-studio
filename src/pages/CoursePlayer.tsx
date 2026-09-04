@@ -1,11 +1,13 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 
 import { useLanguage } from "@/i18n/LanguageContext";
 import {
   useCourseLearning,
   useAccessCourseResource,
+  useCompleteVideo,
 } from "@/hooks/useCourseLearning";
+import { useVideoWatchTracker } from "@/hooks/useVideoWatchTracker";
 
 import { Button } from "@/components/ui/button";
 
@@ -122,6 +124,12 @@ const CoursePlayer = () => {
   const accessResourceMutation = useAccessCourseResource();
 
   /* ------------------------------------------------------------------------ */
+  /* Video completion (fired at 80% watched)                                 */
+  /* ------------------------------------------------------------------------ */
+
+  const completeVideoMutation = useCompleteVideo();
+
+  /* ------------------------------------------------------------------------ */
   /* Local state                                                              */
   /* ------------------------------------------------------------------------ */
 
@@ -164,6 +172,36 @@ const CoursePlayer = () => {
   /* ------------------------------------------------------------------------ */
 
   const currentLesson = sortedVideos[activeLesson];
+
+  /* ------------------------------------------------------------------------ */
+  /* Watch tracking                                                          */
+  /* ------------------------------------------------------------------------ */
+
+  const handleWatchThreshold = useCallback(
+    (videoId: number) => {
+      if (!courseId || !isEnrolled) return;
+
+      completeVideoMutation.mutate({ courseId, videoId });
+
+      setCompletedLessons((previous) => {
+        const next = new Set(previous);
+
+        next.add(videoId);
+
+        return next;
+      });
+    },
+    // The mutation object is stable enough for this callback.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [courseId, isEnrolled],
+  );
+
+  const { iframeRef } = useVideoWatchTracker({
+    videoId: currentLesson?.id,
+    duration: currentLesson?.duration,
+    enabled: Boolean(courseId) && isEnrolled && currentLesson?.status === "ready",
+    onThreshold: handleWatchThreshold,
+  });
 
   /* ------------------------------------------------------------------------ */
   /* Course statistics                                                        */
@@ -433,6 +471,7 @@ const CoursePlayer = () => {
           <div className="bg-black aspect-video w-full">
             {safeUrl(currentLesson?.player_url) && currentLesson.status === "ready" ? (
               <iframe
+                ref={iframeRef}
                 key={currentLesson.id}
                 src={safeUrl(currentLesson.player_url)!}
                 referrerPolicy="strict-origin-when-cross-origin"

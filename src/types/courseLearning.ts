@@ -55,3 +55,13 @@ export interface ResourceAccessResponse {
   };
   errors: unknown;
 }
+export interface VideoCompletionResponse {
+  success: boolean;
+  message: string;
+  data: {
+    video_id: number;
+    completed: boolean;
+    completed_at: string;
+  };
+  errors: unknown;
+}

@@ -2,6 +2,7 @@ import { apiClient } from "@/api/client";
 import type {
   CourseLearningResponse,
   ResourceAccessResponse,
+  VideoCompletionResponse,
 } from "@/types/courseLearning";
 
 export const courseLearningApi = {
@@ -35,6 +36,19 @@ export const courseLearningApi = {
   ): Promise<ResourceAccessResponse> => {
     return apiClient.get<ResourceAccessResponse>(
       `/courses/${courseId}/resources/${resourceId}/access`
+    );
+  },
+
+  /**
+   * Mark a video as completed (called once the learner
+   * has watched at least 80% of it).
+   */
+  completeVideo: async (
+    courseId: number,
+    videoId: number
+  ): Promise<VideoCompletionResponse> => {
+    return apiClient.post<VideoCompletionResponse>(
+      `/courses/${courseId}/videos/${videoId}/complete`
     );
   },
 };

@@ -51,6 +51,7 @@ const levelSubtitles = {
 const Courses = () => {
   const { lang } = useLanguage();
   const [userLevel, setUserLevel] = useState<CEFRLevel | null>(null);
+  const [filterLevel, setFilterLevel] = useState<ApiLevel | "all">("all");
   const { data: courses, isLoading, error } = useCourses();
 
   useEffect(() => {
@@ -61,9 +62,12 @@ const Courses = () => {
     }
   }, []);
 
-  const displayCourses = userLevel
-    ? (courses || []).filter((c) => c.level === userLevel)
-    : (courses || []);
+  // Filtering happens on the already-cached React Query data — no extra requests.
+  const displayCourses = (courses || []).filter((c) => {
+    if (userLevel && c.level !== userLevel) return false;
+    if (filterLevel !== "all" && c.level !== filterLevel) return false;
+    return true;
+  });
 
   const coursesByLevel: Partial<Record<ApiLevel, typeof displayCourses>> = {};
   displayCourses.forEach((c) => {

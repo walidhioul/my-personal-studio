@@ -5,7 +5,10 @@ const Testimonials = () => {
   const { t, lang } = useLanguage();
   const { data, isLoading, isError } = useHomePageData();
 
-  const feedbacks = (data?.featured_feedbacks ?? []).slice(0, 6);
+  const feedbacks = (data?.featured_feedbacks ?? [])
+    .filter((fb) => fb.comment && fb.comment.trim().length > 0)
+    .slice(0, 6);
+
 
   return (
     <section className="py-20">

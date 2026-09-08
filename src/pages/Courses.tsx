@@ -123,6 +123,20 @@ const Courses = () => {
 
       {/* Course Sections */}
       <main className="flex-1 container mx-auto px-4 py-16">
+        {/* Level filter */}
+        <div className="flex flex-wrap justify-center gap-2 mb-12">
+          {(["all", ...levelOrder] as const).map((lv) => (
+            <Button
+              key={lv}
+              size="sm"
+              variant={filterLevel === lv ? "default" : "outline"}
+              onClick={() => setFilterLevel(lv)}
+            >
+              {lv === "all" ? (lang === "en" ? "All" : "الكل") : lv}
+            </Button>
+          ))}
+        </div>
+
         {isLoading && (
           <div className="flex justify-center py-20">
             <Loader2 className="animate-spin text-primary" size={40} />

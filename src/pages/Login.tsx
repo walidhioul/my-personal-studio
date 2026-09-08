@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { Globe, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import logo from "@/assets/logo.jpeg";
 
 const Login = () => {
   const { t, lang, setLang } = useLanguage();
@@ -46,8 +47,8 @@ const Login = () => {
           <div className="absolute bottom-20 right-10 w-96 h-96 rounded-full bg-primary-foreground blur-3xl" />
         </div>
         <div className="relative z-10 text-center px-12">
-          <div className="w-16 h-16 rounded-2xl bg-primary-foreground/20 flex items-center justify-center mx-auto mb-6">
-            <span className="text-3xl">🌙</span>
+          <div className="w-16 h-16 rounded-2xl bg-primary-foreground/20 flex items-center justify-center mx-auto mb-6 overflow-hidden">
+            <img src={logo} alt="To The Moon With English" className="w-full h-full object-cover" />
           </div>
           <h2 className="text-3xl font-bold text-primary-foreground mb-4">
             To The Moon With English
@@ -64,11 +65,7 @@ const Login = () => {
       <div className="w-full lg:w-1/2 flex flex-col">
         <div className="flex justify-between items-center p-6">
           <Link to="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm">
-                🌙
-              </span>
-            </div>
+            <img src={logo} alt="To The Moon With English" className="h-9 w-auto rounded-lg" />
             <span className="font-bold text-foreground text-sm lg:hidden">
               To The Moon
             </span>

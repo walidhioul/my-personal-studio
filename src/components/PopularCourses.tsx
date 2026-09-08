@@ -33,9 +33,9 @@ const PopularCourses = () => {
                 className="bg-card border border-border rounded-xl overflow-hidden text-start hover:shadow-lg transition-shadow"
               >
                 <div className={`h-36 ${colors[i % colors.length]} rounded-t-xl overflow-hidden`}>
-                  {(c.thumbnail_url || c.thumbnail || c.picture) && (
+                  {(c.thumbnail_url || c.picture_url) && (
                     <img
-                      src={resolveAsset(c.thumbnail_url || c.thumbnail || c.picture)}
+                      src={resolveAsset(c.thumbnail_url || c.picture_url)}
                       alt={c.title}
                       className="w-full h-full object-cover"
                       loading="lazy"
@@ -48,14 +48,23 @@ const PopularCourses = () => {
                     <h3 className="font-semibold text-foreground line-clamp-1">{c.title}</h3>
                     <span className="text-xs font-bold text-primary">{c.level}</span>
                   </div>
-                  <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{c.description}</p>
+                  {c.description && (
+                    <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{c.description}</p>
+                  )}
                   <div className="flex items-center justify-between">
-                    <div className={`h-2 w-24 rounded-full ${colors[i % colors.length]} opacity-80`} />
+                    <span className="text-xs text-muted-foreground">
+                      {typeof c.sales_count === "number"
+                        ? lang === "en"
+                          ? `${c.sales_count} students`
+                          : `${c.sales_count} طالب`
+                        : ""}
+                    </span>
                     <span className="font-bold text-foreground text-sm">
                       {Number(c.price) === 0 ? (lang === "en" ? "Free" : "مجاني") : `$${c.price}`}
                     </span>
                   </div>
                 </div>
+
               </Link>
             ))}
           </div>

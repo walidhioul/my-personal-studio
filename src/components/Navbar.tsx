@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Globe } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
@@ -10,19 +10,35 @@ const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { t, lang, setLang } = useLanguage();
   const { user } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
 
   // Route the Dashboard button to the admin panel for admins, student dashboard otherwise.
   const dashboardPath = user?.role === "admin" ? "/admin" : "/dashboard";
   const dashboardLabel = lang === "en" ? "Dashboard" : "لوحة التحكم";
+  const welcome = lang === "en" ? `Welcome, ${user?.name ?? ""}` : `مرحباً، ${user?.name ?? ""}`;
 
   const navLinks = [
     { label: t.nav.home, href: "/" },
     { label: t.nav.courses, href: "/courses" },
     { label: lang === "en" ? "Placement Test" : "اختبار المستوى", href: "/placement-test" },
-    { label: t.nav.contact, href: "#contact" },
   ];
 
   const toggleLang = () => setLang(lang === "en" ? "ar" : "en");
+
+  // Smoothly scroll to the footer contact section (navigate home first if needed).
+  const goToContact = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setMobileOpen(false);
+    const scroll = () =>
+      document.getElementById("contact")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (location.pathname !== "/") {
+      navigate("/");
+      setTimeout(scroll, 300);
+    } else {
+      scroll();
+    }
+  };
 
   return (
     <header className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b border-border">
@@ -37,6 +53,9 @@ const Navbar = () => {
               {link.label}
             </Link>
           ))}
+          <a href="#contact" onClick={goToContact} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            {t.nav.contact}
+          </a>
         </nav>
 
         <div className="hidden md:flex items-center gap-3">
@@ -45,9 +64,12 @@ const Navbar = () => {
             {lang === "en" ? "العربية" : "English"}
           </Button>
           {user ? (
-            <Button size="sm" asChild>
-              <Link to={dashboardPath}>{dashboardLabel}</Link>
-            </Button>
+            <>
+              <span className="text-sm font-medium text-foreground max-w-[180px] truncate">{welcome}</span>
+              <Button size="sm" asChild>
+                <Link to={dashboardPath}>{dashboardLabel}</Link>
+              </Button>
+            </>
           ) : (
             <>
               <Button variant="ghost" size="sm" asChild><Link to="/login">{t.nav.login}</Link></Button>
@@ -74,6 +96,10 @@ const Navbar = () => {
                 {link.label}
               </Link>
             ))}
+            <a href="#contact" onClick={goToContact} className="text-sm text-muted-foreground hover:text-foreground">
+              {t.nav.contact}
+            </a>
+            {user && <span className="text-sm font-medium text-foreground pt-1">{welcome}</span>}
             <div className="flex gap-2 pt-2">
               {user ? (
                 <Button size="sm" asChild><Link to={dashboardPath}>{dashboardLabel}</Link></Button>

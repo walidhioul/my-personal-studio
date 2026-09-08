@@ -1,11 +1,11 @@
 import { useLanguage } from "@/i18n/LanguageContext";
-import { useFeedbacks } from "@/hooks/useFeedbacks";
+import { useHomePageData } from "@/hooks/useHomePageData";
 
 const Testimonials = () => {
-  const { t } = useLanguage();
-  const { data, isLoading, isError } = useFeedbacks();
+  const { t, lang } = useLanguage();
+  const { data, isLoading, isError } = useHomePageData();
 
-  const feedbacks = (data ?? []).filter((fb) => fb.is_approved).slice(0, 6);
+  const feedbacks = (data?.featured_feedbacks ?? []).slice(0, 6);
 
   return (
     <section className="py-20">
@@ -14,9 +14,11 @@ const Testimonials = () => {
         <p className="text-muted-foreground max-w-lg mx-auto mb-14">{t.testimonials.subtitle}</p>
 
         {isLoading ? (
-          <p className="text-muted-foreground">Loading...</p>
+          <p className="text-muted-foreground">{lang === "en" ? "Loading..." : "جار التحميل..."}</p>
         ) : isError || feedbacks.length === 0 ? (
-          <p className="text-muted-foreground">No feedbacks yet.</p>
+          <p className="text-muted-foreground">
+            {lang === "en" ? "No feedbacks yet." : "لا توجد تقييمات بعد."}
+          </p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {feedbacks.map((fb) => (
@@ -24,9 +26,9 @@ const Testimonials = () => {
                 key={fb.id}
                 className="bg-card border border-border rounded-xl p-6 text-start hover:shadow-lg transition-shadow"
               >
-                <p className="text-sm text-muted-foreground mb-4 italic">
-                  "{fb.comment ?? "No comment"}"
-                </p>
+                {fb.comment && (
+                  <p className="text-sm text-muted-foreground mb-4 italic">"{fb.comment}"</p>
+                )}
                 {fb.rating > 0 && (
                   <div className="text-xs text-muted-foreground">⭐ {fb.rating}</div>
                 )}

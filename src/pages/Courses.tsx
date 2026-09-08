@@ -51,6 +51,7 @@ const levelSubtitles = {
 const Courses = () => {
   const { lang } = useLanguage();
   const [userLevel, setUserLevel] = useState<CEFRLevel | null>(null);
+  const [filterLevel, setFilterLevel] = useState<ApiLevel | "all">("all");
   const { data: courses, isLoading, error } = useCourses();
 
   useEffect(() => {
@@ -61,9 +62,12 @@ const Courses = () => {
     }
   }, []);
 
-  const displayCourses = userLevel
-    ? (courses || []).filter((c) => c.level === userLevel)
-    : (courses || []);
+  // Filtering happens on the already-cached React Query data — no extra requests.
+  const displayCourses = (courses || []).filter((c) => {
+    if (userLevel && c.level !== userLevel) return false;
+    if (filterLevel !== "all" && c.level !== filterLevel) return false;
+    return true;
+  });
 
   const coursesByLevel: Partial<Record<ApiLevel, typeof displayCourses>> = {};
   displayCourses.forEach((c) => {
@@ -119,6 +123,20 @@ const Courses = () => {
 
       {/* Course Sections */}
       <main className="flex-1 container mx-auto px-4 py-16">
+        {/* Level filter */}
+        <div className="flex flex-wrap justify-center gap-2 mb-12">
+          {(["all", ...levelOrder] as const).map((lv) => (
+            <Button
+              key={lv}
+              size="sm"
+              variant={filterLevel === lv ? "default" : "outline"}
+              onClick={() => setFilterLevel(lv)}
+            >
+              {lv === "all" ? (lang === "en" ? "All" : "الكل") : lv}
+            </Button>
+          ))}
+        </div>
+
         {isLoading && (
           <div className="flex justify-center py-20">
             <Loader2 className="animate-spin text-primary" size={40} />

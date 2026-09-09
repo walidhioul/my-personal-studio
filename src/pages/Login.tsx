@@ -111,9 +111,9 @@ const Login = () => {
                   <label className="text-sm font-medium text-foreground">
                     {t.auth.password}
                   </label>
-                  <a href="#" className="text-xs text-primary hover:underline">
+                  <Link to="/forgot-password" className="text-xs text-primary hover:underline">
                     {t.auth.forgotPassword}
-                  </a>
+                  </Link>
                 </div>
                 <div className="relative">
                   <Input

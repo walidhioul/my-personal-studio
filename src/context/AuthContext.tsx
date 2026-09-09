@@ -8,7 +8,7 @@ interface AuthContextType {
   loading: boolean;
   login: (data: LoginData) => Promise<void>;
   logout: () => Promise<void>;
-  register: (data: RegisterData) => Promise<void>;
+  register: (data: RegisterData) => Promise<User>;
   refreshUser: () => Promise<void>;
 }
 
@@ -51,6 +51,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const register = async (data: RegisterData) => {
     const registered = await authApi.register(data);
     qc.setQueryData(authKeys.me, registered);
+    return registered;
   };
 
   const logout = async () => {

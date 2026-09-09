@@ -31,13 +31,14 @@ const Register = () => {
 
     setLoading(true);
     try {
-      await register({
+      const registered = await register({
         name,
         email,
         password,
         password_confirmation: passwordConfirm,
       });
-      navigate("/dashboard");
+      // Unverified accounts land on the email-verification screen first.
+      navigate(registered?.email_verified_at ? "/dashboard" : "/verify-email");
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);

@@ -28,6 +28,9 @@ import AdminResources from "./pages/admin/AdminResources";
 import AdminFeedbacks from "./pages/admin/AdminFeedbacks";
 import AdminEvaluationQuizzes from "./pages/admin/AdminEvaluationQuizzes";
 import PaymentPage from "./pages/PaymentPage";
+import VerifyEmail from "./pages/VerifyEmail";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 
 const queryClient = new QueryClient({
@@ -55,6 +58,9 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              <Route path="/verify-email" element={<VerifyEmail />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/placement-test" element={<PlacementTest />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/result" element={<QuizResult />} />

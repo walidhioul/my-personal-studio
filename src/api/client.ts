@@ -1,5 +1,26 @@
 import { BASE_URL } from "@/config/api";
 
+/** Error carrying the HTTP status and Laravel validation errors ({field: [msg]}). */
+export class ApiError extends Error {
+  status: number;
+  errors: Record<string, string[]> | null;
+  constructor(message: string, status: number, errors: Record<string, string[]> | null = null) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+    this.errors = errors;
+  }
+}
+
+/** Flattens 422 validation errors into a single readable string for toasts. */
+export function formatApiError(error: unknown): string {
+  if (error instanceof ApiError && error.errors) {
+    const messages = Object.values(error.errors).flat();
+    if (messages.length) return messages.join("\n");
+  }
+  return error instanceof Error ? error.message : "Something went wrong";
+}
+
 class ApiClient {
   private baseUrl: string;
 
@@ -33,7 +54,19 @@ class ApiClient {
     if (res.status === 204) return undefined as T;
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
-      throw new Error(body.message || `Request failed (${res.status})`);
+      // 422 = Laravel validation: keep the field errors so forms can show them.
+      if (res.status === 422) {
+        throw new ApiError(
+          body.message || "Validation failed",
+          422,
+          body.errors ?? null,
+        );
+      }
+      throw new ApiError(
+        body.message || `Request failed (${res.status})`,
+        res.status,
+        body.errors ?? null,
+      );
     }
     return res.json();
   }

@@ -4,8 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "@/i18n/LanguageContext";
-import { AuthProvider } from "@/context/AuthContext"; 
-import CourseDetails from "./pages/CourseDetails";
+import { AuthProvider } from "@/context/AuthContext";
 
 
 import Index from "./pages/Index";
@@ -16,8 +15,19 @@ import QuizResult from "./pages/QuizResult";
 import Courses from "./pages/Courses";
 import NotFound from "./pages/NotFound";
 import Dashboard from "./pages/Dashboard";
+import CourseDetails from "./pages/CourseDetails";
 import CoursePlayer from "./pages/CoursePlayer";
-import AdminRoute from "./components/AdminRoute";
+import PaymentPage from "./pages/PaymentPage";
+
+import VerifyEmail from "./pages/VerifyEmail";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
+import EmailVerification from "./pages/EmailVerification";
+
+
+import AdminOnlyRoute from "./components/AdminOnlyRoute";
+import UserOnlyRoute from "./components/UserOnlyRoute";
+
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminOverview from "./pages/admin/AdminOverview";
 import AdminUsers from "./pages/admin/AdminUsers";
@@ -27,16 +37,10 @@ import AdminVideos from "./pages/admin/AdminVideos";
 import AdminResources from "./pages/admin/AdminResources";
 import AdminFeedbacks from "./pages/admin/AdminFeedbacks";
 import AdminEvaluationQuizzes from "./pages/admin/AdminEvaluationQuizzes";
-import PaymentPage from "./pages/PaymentPage";
-import VerifyEmail from "./pages/VerifyEmail";
-import ForgotPassword from "./pages/ForgotPassword";
-import ResetPassword from "./pages/ResetPassword";
-
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      // Sensible defaults: no refetch storms on focus/remount, short retry.
       staleTime: 2 * 60 * 1000,
       gcTime: 10 * 60 * 1000,
       refetchOnWindowFocus: false,
@@ -49,46 +53,70 @@ const queryClient = new QueryClient({
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <LanguageProvider>
-      <AuthProvider> {/* <-- WRAP HERE */}
+      <AuthProvider>
         <TooltipProvider>
           <Toaster />
           <Sonner />
+
           <BrowserRouter>
             <Routes>
-              <Route path="/" element={<Index />} />
+
+              {/* ================= PUBLIC PAGES ================= */}
+
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/verify-email" element={<VerifyEmail />} />
+              <Route path="/email-verification" element={<EmailVerification />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/placement-test" element={<PlacementTest />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/result" element={<QuizResult />} />
-              <Route path="/courses" element={<Courses />} />
-               <Route path="/courses/:id" element={<CourseDetails />} />
-               <Route path="/courses/:id/learn" element={<CoursePlayer />} />
-                <Route path="/courses/:id/payment" element={<PaymentPage />} />
-              <Route
-                path="/admin"
-                element={
-                  <AdminRoute>
-                    <AdminLayout />
-                  </AdminRoute>
-                }
-              >
-           
-                <Route index element={<AdminOverview />} />
-                <Route path="users" element={<AdminUsers />} />
-                <Route path="courses" element={<AdminCourses />} />
-                <Route path="evaluation-quizz" element={<AdminEvaluationQuizzes />} />
-                <Route path="videos" element={<AdminVideos />} />
-                <Route path="resources" element={<AdminResources />} />
-                <Route path="enrollments" element={<AdminEnrollments />} />
-                <Route path="feedbacks" element={<AdminFeedbacks />} />
+
+
+              {/* ================= NORMAL USER PAGES ================= */}
+
+              <Route element={<UserOnlyRoute />}>
+                <Route path="/" element={<Index />} />
+                <Route path="/placement-test" element={<PlacementTest />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/result" element={<QuizResult />} />
+                <Route path="/courses" element={<Courses />} />
+                <Route path="/courses/:id" element={<CourseDetails />} />
+                <Route
+                  path="/courses/:id/learn"
+                  element={<CoursePlayer />}
+                />
+                <Route
+                  path="/courses/:id/payment"
+                  element={<PaymentPage />}
+                />
               </Route>
+
+
+              {/* ================= ADMIN PANEL ================= */}
+
+              <Route element={<AdminOnlyRoute />}>
+                <Route path="/admin" element={<AdminLayout />}>
+                  <Route index element={<AdminOverview />} />
+                  <Route path="users" element={<AdminUsers />} />
+                  <Route path="courses" element={<AdminCourses />} />
+                  <Route
+                    path="evaluation-quizz"
+                    element={<AdminEvaluationQuizzes />}
+                  />
+                  <Route path="videos" element={<AdminVideos />} />
+                  <Route path="resources" element={<AdminResources />} />
+                  <Route path="enrollments" element={<AdminEnrollments />} />
+                  <Route path="feedbacks" element={<AdminFeedbacks />} />
+                </Route>
+              </Route>
+
+
+              {/* ================= 404 ================= */}
+
               <Route path="*" element={<NotFound />} />
+
             </Routes>
           </BrowserRouter>
+
         </TooltipProvider>
       </AuthProvider>
     </LanguageProvider>

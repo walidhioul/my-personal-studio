@@ -13,20 +13,40 @@ type ApiLevel = "A1" | "A2" | "B1" | "B2" | "C1" | "C2";
 const levelOrder: ApiLevel[] = ["A1", "A2", "B1", "B2", "C1", "C2"];
 
 const levelBadgeColor: Record<ApiLevel, string> = {
-  A1: "bg-emerald-500", A2: "bg-teal-500",
-  B1: "bg-blue-500",   B2: "bg-indigo-500",
-  C1: "bg-purple-500", C2: "bg-rose-500",
+  A1: "bg-emerald-500",
+  A2: "bg-teal-500",
+  B1: "bg-blue-500",
+  B2: "bg-indigo-500",
+  C1: "bg-purple-500",
+  C2: "bg-rose-500",
 };
 
 const levelTextColor: Record<ApiLevel, string> = {
-  A1: "text-emerald-600", A2: "text-teal-600",
-  B1: "text-blue-600",   B2: "text-indigo-600",
-  C1: "text-purple-600", C2: "text-rose-600",
+  A1: "text-emerald-600",
+  A2: "text-teal-600",
+  B1: "text-blue-600",
+  B2: "text-indigo-600",
+  C1: "text-purple-600",
+  C2: "text-rose-600",
 };
 
 const levelTitles = {
-  en: { A1: "A1 – Beginner", A2: "A2 – Elementary", B1: "B1 – Intermediate", B2: "B2 – Upper Intermediate", C1: "C1 – Advanced", C2: "C2 – Proficiency" },
-  ar: { A1: "A1 – مبتدئ", A2: "A2 – أساسي", B1: "B1 – متوسط", B2: "B2 – فوق المتوسط", C1: "C1 – متقدم", C2: "C2 – إتقان" },
+  en: {
+    A1: "A1 – Beginner",
+    A2: "A2 – Elementary",
+    B1: "B1 – Intermediate",
+    B2: "B2 – Upper Intermediate",
+    C1: "C1 – Advanced",
+    C2: "C2 – Proficiency",
+  },
+  ar: {
+    A1: "A1 – مبتدئ",
+    A2: "A2 – أساسي",
+    B1: "B1 – متوسط",
+    B2: "B2 – فوق المتوسط",
+    C1: "C1 – متقدم",
+    C2: "C2 – إتقان",
+  },
 };
 
 const levelSubtitles = {
@@ -98,10 +118,15 @@ const Courses = () => {
           {userLevel && (
             <div className="mt-6 inline-flex items-center gap-2 bg-primary-foreground/10 rounded-full px-4 py-2 text-primary-foreground text-sm">
               <Award size={16} />
-              {lang === "en" ? `Showing courses for your level: ${userLevel}` : `عرض الدورات لمستواك: ${userLevel}`}
+              {lang === "en"
+                ? `Showing courses for your level: ${userLevel}`
+                : `عرض الدورات لمستواك: ${userLevel}`}
               <button
                 className="ms-2 underline text-primary-foreground/70 hover:text-primary-foreground text-xs"
-                onClick={() => { localStorage.removeItem("quizResult"); setUserLevel(null); }}
+                onClick={() => {
+                  localStorage.removeItem("quizResult");
+                  setUserLevel(null);
+                }}
               >
                 {lang === "en" ? "Show all" : "عرض الكل"}
               </button>
@@ -113,7 +138,9 @@ const Courses = () => {
               <Button variant="secondary" size="lg" asChild className="gap-2">
                 <Link to="/placement-test">
                   <BookOpen size={18} />
-                  {lang === "en" ? "Take Placement Test" : "ابدأ اختبار تحديد المستوى"}
+                  {lang === "en"
+                    ? "Take Placement Test"
+                    : "ابدأ اختبار تحديد المستوى"}
                 </Link>
               </Button>
             </div>
@@ -145,82 +172,124 @@ const Courses = () => {
 
         {error && (
           <div className="text-center py-20 text-destructive">
-            {lang === "en" ? "Failed to load courses. Please try again." : "فشل تحميل الدورات. يرجى المحاولة مرة أخرى."}
+            {lang === "en"
+              ? "Failed to load courses. Please try again."
+              : "فشل تحميل الدورات. يرجى المحاولة مرة أخرى."}
           </div>
         )}
 
         {!isLoading && !error && displayCourses.length === 0 && (
           <div className="text-center py-20 text-muted-foreground">
-            {lang === "en" ? "No courses available yet." : "لا توجد دورات متاحة حتى الآن."}
+            {lang === "en"
+              ? "No courses available yet."
+              : "لا توجد دورات متاحة حتى الآن."}
           </div>
         )}
 
-        {!isLoading && !error && displayLevels.map((level) => (
-          <section key={level} className="mb-16 last:mb-0">
-            <div className="text-center mb-10">
-              <div className="inline-flex items-center gap-2 mb-2">
-                <div className={`w-8 h-8 rounded-lg ${levelBadgeColor[level]} flex items-center justify-center`}>
-                  <span className="text-white text-xs font-bold">✓</span>
+        {!isLoading &&
+          !error &&
+          displayLevels.map((level) => (
+            <section key={level} className="mb-16 last:mb-0">
+              <div className="text-center mb-10">
+                <div className="inline-flex items-center gap-2 mb-2">
+                  <div
+                    className={`w-8 h-8 rounded-lg ${levelBadgeColor[level]} flex items-center justify-center`}
+                  >
+                    <span className="text-white text-xs font-bold">✓</span>
+                  </div>
+                  <h2 className="text-2xl font-bold text-foreground">
+                    {levelTitles[lang][level]}
+                  </h2>
                 </div>
-                <h2 className="text-2xl font-bold text-foreground">{levelTitles[lang][level]}</h2>
+                <p className="text-muted-foreground text-sm">
+                  {levelSubtitles[lang][level]}
+                </p>
               </div>
-              <p className="text-muted-foreground text-sm">{levelSubtitles[lang][level]}</p>
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {coursesByLevel[level]!.map((course) => (
-                <div key={course.id} className="bg-card border border-border rounded-xl overflow-hidden hover:shadow-lg transition-shadow group">
-                  <div className="h-44 overflow-hidden bg-muted">
-                    <img
-                      src={resolveAsset(course.thumbnail_url || course.thumbnail || course.picture)}
-                      alt={course.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      loading="lazy"
-                      onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/placeholder.svg"; }}
-                    />
-                  </div>
-                  <div className="p-5">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className={`text-xs font-bold ${levelTextColor[course.level as ApiLevel] || "text-muted-foreground"}`}>
-                        {course.level}
-                      </span>
-                      {course.rating && (
-                        <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <Star size={12} className="fill-yellow-400 text-yellow-400" />
-                          ({course.rating})
-                        </span>
-                      )}
-                    </div>
-                    <h3 className="font-semibold text-foreground mb-1.5 line-clamp-1">{course.title}</h3>
-                    <p className="text-xs text-muted-foreground mb-4 line-clamp-2">{course.description}</p>
-
-                    <div className="flex items-center justify-between mb-4">
-                      {course.duration && (
-                        <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <Clock size={12} /> {course.duration} {lang === "en" ? "weeks" : "أسبوع"}
-                        </span>
-                      )}
-                      <span className="font-bold text-foreground">
-                        {Number(course.price) === 0 ? (lang === "en" ? "Free" : "مجاني") : `$${course.price}`}
-                      </span>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {coursesByLevel[level]!.map((course) => (
+                  <div
+                    key={course.id}
+                    className="bg-card border border-border rounded-xl overflow-hidden hover:shadow-lg transition-shadow group"
+                  >
+                    <div className="h-56 overflow-hidden bg-muted">
+                      <img
+                        src={resolveAsset(
+                          course.thumbnail_url ||
+                            course.thumbnail ||
+                            course.picture,
+                        )}
+                        alt={course.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        loading="lazy"
+                        onError={(e) => {
+                          (e.currentTarget as HTMLImageElement).src =
+                            "/placeholder.svg";
+                        }}
+                      />
                     </div>
 
-                    <Button className="w-full" size="sm" asChild>
-                      <Link to={`/courses/${course.id}`}>{lang === "en" ? "View Details" : "عرض التفاصيل"}</Link>
-                    </Button>
+                    <div className="p-5">
+                      <div className="flex items-center justify-between mb-2">
+                        <span
+                          className={`text-xs font-bold ${levelTextColor[course.level as ApiLevel] || "text-muted-foreground"}`}
+                        >
+                          {course.level}
+                        </span>
+
+                        {course.rating && (
+                          <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <Star
+                              size={12}
+                              className="fill-yellow-400 text-yellow-400"
+                            />
+                            ({course.rating})
+                          </span>
+                        )}
+                      </div>
+
+                      <h3 className="font-semibold text-foreground mb-4 line-clamp-1">
+                        {course.title}
+                      </h3>
+
+                      <div className="flex items-center justify-between mb-4">
+                        {course.duration && (
+                          <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <Clock size={12} />
+                            {course.duration}{" "}
+                            {lang === "en" ? "weeks" : "أسبوع"}
+                          </span>
+                        )}
+
+                        <span className="font-bold text-foreground">
+                          {Number(course.price) === 0
+                            ? lang === "en"
+                              ? "Free"
+                              : "مجاني"
+                            : `${course.price} DA`}
+                        </span>
+                      </div>
+
+                      <Button className="w-full" size="sm" asChild>
+                        <Link to={`/courses/${course.id}`}>
+                          {lang === "en" ? "View Details" : "عرض التفاصيل"}
+                        </Link>
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          </section>
-        ))}
+                ))}
+              </div>
+            </section>
+          ))}
       </main>
 
       {/* CTA */}
       <section className="bg-primary py-14">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-2xl md:text-3xl font-bold text-primary-foreground mb-3">
-            {lang === "en" ? "Ready to Start Your English Journey?" : "هل أنت مستعد لبدء رحلتك في تعلم الإنجليزية؟"}
+            {lang === "en"
+              ? "Ready to Start Your English Journey?"
+              : "هل أنت مستعد لبدء رحلتك في تعلم الإنجليزية؟"}
           </h2>
           <div className="flex flex-wrap justify-center gap-4 mt-6">
             <Button variant="secondary" size="lg">

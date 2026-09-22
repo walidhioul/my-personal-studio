@@ -4,8 +4,6 @@ import { useLanguage } from "@/i18n/LanguageContext";
 import { useHomePageData } from "@/hooks/useHomePageData";
 import { resolveAsset } from "@/config/api";
 
-const colors = ["bg-course-pink", "bg-course-green", "bg-course-purple"];
-
 const PopularCourses = () => {
   const { t, lang } = useLanguage();
   const { data, isLoading, isError } = useHomePageData();
@@ -15,57 +13,83 @@ const PopularCourses = () => {
   return (
     <section className="py-20 bg-muted/40" id="courses">
       <div className="container mx-auto px-4 text-center">
-        <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-3">{t.courses.title}</h2>
-        <p className="text-muted-foreground max-w-lg mx-auto mb-14">{t.courses.subtitle}</p>
+        <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-3">
+          {t.courses.title}
+        </h2>
+
+        <p className="text-muted-foreground max-w-lg mx-auto mb-14">
+          {t.courses.subtitle}
+        </p>
 
         {isLoading ? (
-          <p className="text-muted-foreground">{lang === "en" ? "Loading..." : "جار التحميل..."}</p>
+          <p className="text-muted-foreground">
+            {lang === "en" ? "Loading..." : "جار التحميل..."}
+          </p>
         ) : isError || courses.length === 0 ? (
           <p className="text-muted-foreground">
-            {lang === "en" ? "No courses available yet." : "لا توجد دورات متاحة حتى الآن."}
+            {lang === "en"
+              ? "No courses available yet."
+              : "لا توجد دورات متاحة حتى الآن."}
           </p>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {courses.map((c, i) => (
-              <Link
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {courses.map((c) => (
+              <div
                 key={c.id}
-                to={`/courses/${c.id}`}
-                className="bg-card border border-border rounded-xl overflow-hidden text-start hover:shadow-lg transition-shadow"
+                className="bg-card border border-border rounded-xl overflow-hidden text-start hover:shadow-lg transition-shadow group"
               >
-                <div className={`h-36 ${colors[i % colors.length]} rounded-t-xl overflow-hidden`}>
+                {/* Thumbnail */}
+                <div className="w-full aspect-video overflow-hidden bg-muted">
                   {(c.thumbnail_url || c.picture_url) && (
                     <img
                       src={resolveAsset(c.thumbnail_url || c.picture_url)}
                       alt={c.title}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       loading="lazy"
-                      onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).src =
+                          "/placeholder.svg";
+                      }}
                     />
                   )}
                 </div>
-                <div className="p-6">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-semibold text-foreground line-clamp-1">{c.title}</h3>
-                    <span className="text-xs font-bold text-primary">{c.level}</span>
-                  </div>
-                  {c.description && (
-                    <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{c.description}</p>
-                  )}
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">
-                      {typeof c.sales_count === "number"
-                        ? lang === "en"
-                          ? `${c.sales_count} students`
-                          : `${c.sales_count} طالب`
-                        : ""}
-                    </span>
-                    <span className="font-bold text-foreground text-sm">
-                      {Number(c.price) === 0 ? (lang === "en" ? "Free" : "مجاني") : `$${c.price}`}
-                    </span>
-                  </div>
-                </div>
 
-              </Link>
+                {/* Card Content */}
+                <div className="p-5">
+                  {/* Level */}
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-bold text-primary">
+                      {c.level}
+                    </span>
+                  </div>
+
+                  {/* Title */}
+                  <h3 className="font-semibold text-foreground mb-4 line-clamp-1">
+                    {c.title}
+                  </h3>
+
+                  {/* Students + Price */}
+                  <div className="flex items-center justify-between mb-4">
+                    
+                    <span className="font-bold text-foreground">
+                      {Number(c.price) === 0
+                        ? lang === "en"
+                          ? "Free"
+                          : "مجاني"
+                        : `${c.price} DA`}
+                    </span>
+                  </div>
+
+                  {/* View Details */}
+                  <Button className="w-full" size="sm" asChild>
+                    <Link to={`/courses/${c.id}`}>
+                      {lang === "en"
+                        ? "View Details"
+                        : "عرض التفاصيل"}
+                    </Link>
+                  </Button>
+                </div>
+              </div>
             ))}
           </div>
         )}

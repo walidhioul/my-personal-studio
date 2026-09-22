@@ -3,11 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { calculateLevelFromScore, levelColors } from "@/data/quizData";
-import { Clock, ListChecks, CheckCircle2, Loader2 } from "lucide-react";
+import { ListChecks, CheckCircle2, Loader2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { submitPlacementResult, type EvaluationQuiz } from "@/api/quiz";
-
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { useEvaluationQuizzes } from "@/hooks/useEvaluationQuiz";
@@ -16,34 +15,79 @@ const PlacementTest = () => {
   const { lang } = useLanguage();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [answers, setAnswers] = useState<Record<number, number>>({});
+
+  // Store multiple selected answers for each question
+  const [answers, setAnswers] = useState<Record<number, number[]>>({});
   const [submitting, setSubmitting] = useState(false);
 
   const { data: quizzes, isLoading, isError } = useEvaluationQuizzes();
 
   const quiz: EvaluationQuiz | undefined = quizzes?.[0];
-  const questions = quiz?.questions ? [...quiz.questions].sort((a, b) => a.order - b.order) : [];
+  const questions = quiz?.questions
+    ? [...quiz.questions].sort((a, b) => a.order - b.order)
+    : [];
+
   const total = questions.length;
-  const answered = Object.keys(answers).length;
+  const answered = Object.keys(answers).filter(
+    (questionId) => (answers[Number(questionId)] || []).length > 0
+  ).length;
+
   const progressPct = total > 0 ? (answered / total) * 100 : 0;
 
-  const handleSelect = (questionId: number, answerId: number) => {
-    setAnswers((prev) => ({ ...prev, [questionId]: answerId }));
+  const handleSelect = (
+    questionId: number,
+    answerId: number,
+    multiple: boolean
+  ) => {
+    setAnswers((prev) => {
+      const current = prev[questionId] || [];
+
+      // Single choice
+      if (!multiple) {
+        return {
+          ...prev,
+          [questionId]: [answerId],
+        };
+      }
+
+      // Multiple choice: toggle the selected answer
+      return {
+        ...prev,
+        [questionId]: current.includes(answerId)
+          ? current.filter((id) => id !== answerId)
+          : [...current, answerId],
+      };
+    });
   };
 
   const handleSubmit = async () => {
     if (!quiz || submitting) return;
+
     let score = 0;
+
     for (const q of questions) {
-      const chosen = answers[q.id];
-      const correct = q.answers.find((a) => a.is_correct);
-      if (chosen && correct && chosen === correct.id) score++;
+      const chosen = answers[q.id] || [];
+
+      const correctAnswers = q.answers
+        .filter((a) => a.is_correct)
+        .map((a) => a.id);
+
+      // Question is correct only when ALL correct answers
+      // are selected and NO incorrect answers are selected.
+      if (
+        chosen.length === correctAnswers.length &&
+        chosen.every((id) => correctAnswers.includes(id))
+      ) {
+        score++;
+      }
     }
+
     const result = calculateLevelFromScore(score, total);
     localStorage.setItem("quizResult", JSON.stringify(result));
 
     try {
       setSubmitting(true);
+
       await submitPlacementResult({
         quiz_id: quiz.id,
         user_id: user?.id ?? 0,
@@ -51,8 +95,14 @@ const PlacementTest = () => {
         level: result.level,
       });
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Failed to submit result";
-      toast({ title: lang === "en" ? "Submission failed" : "فشل الإرسال", description: msg, variant: "destructive" });
+      const msg =
+        err instanceof Error ? err.message : "Failed to submit result";
+
+      toast({
+        title: lang === "en" ? "Submission failed" : "فشل الإرسال",
+        description: msg,
+        variant: "destructive",
+      });
     } finally {
       setSubmitting(false);
       navigate("/result");
@@ -60,14 +110,35 @@ const PlacementTest = () => {
   };
 
   const levels = ["A1", "A2", "B1", "B2", "C1", "C2"] as const;
+
   const levelLabels = {
-    en: { A1: "Beginner", A2: "Elementary", B1: "Intermediate", B2: "Upper Int.", C1: "Advanced", C2: "Proficiency" },
-    ar: { A1: "مبتدئ", A2: "أساسي", B1: "متوسط", B2: "فوق المتوسط", C1: "متقدم", C2: "إتقان" },
+    en: {
+      A1: "Beginner",
+      A2: "Elementary",
+      B1: "Intermediate",
+      B2: "Upper Int.",
+      C1: "Advanced",
+      C2: "Proficiency",
+    },
+    ar: {
+      A1: "مبتدئ",
+      A2: "أساسي",
+      B1: "متوسط",
+      B2: "فوق المتوسط",
+      C1: "متقدم",
+      C2: "إتقان",
+    },
   };
 
   // Cycle level colors across dynamic questions for the numbered badges
-  const badgeLevels: (keyof typeof levelColors)[] = ["A1", "A2", "B1", "B2", "C1", "C2"];
-
+  const badgeLevels: (keyof typeof levelColors)[] = [
+    "A1",
+    "A2",
+    "B1",
+    "B2",
+    "C1",
+    "C2",
+  ];
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -80,52 +151,91 @@ const PlacementTest = () => {
             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
               <span className="text-xl">🎓</span>
             </div>
+
             <div>
               <h1 className="font-bold text-foreground text-lg">
-                {quiz?.title || (lang === "en" ? "Cambridge Assessment" : "تقييم كامبريدج")}
+                {quiz?.title ||
+                  (lang === "en"
+                    ? "Cambridge Assessment"
+                    : "تقييم كامبريدج")}
               </h1>
+
               <p className="text-sm text-muted-foreground">
-                {lang === "en" ? "English Placement Test" : "اختبار تحديد المستوى"}
+                {lang === "en"
+                  ? "English Placement Test"
+                  : "اختبار تحديد المستوى"}
               </p>
             </div>
           </div>
+
           <div className="flex items-center gap-6 text-sm text-muted-foreground">
-            <span className="flex items-center gap-1.5"><ListChecks size={16} /> {total} {lang === "en" ? "Questions" : "سؤال"}</span>
+            <span className="flex items-center gap-1.5">
+              <ListChecks size={16} />
+              {total} {lang === "en" ? "Questions" : "سؤال"}
+            </span>
           </div>
         </div>
       </div>
 
       <main className="flex-1 container mx-auto px-4 py-8">
         <div className="flex flex-col lg:flex-row gap-8">
+
           {/* Sidebar */}
           <aside className="lg:w-72 shrink-0">
             <div className="bg-card border border-border rounded-xl p-6 sticky top-24">
               <h3 className="font-semibold text-foreground mb-4">
                 {lang === "en" ? "Test Progress" : "تقدم الاختبار"}
               </h3>
+
               <div className="flex justify-between text-sm mb-2">
-                <span className="text-muted-foreground">{lang === "en" ? "Completed" : "مكتمل"}</span>
-                <span className="text-primary font-medium">{answered}/{total}</span>
+                <span className="text-muted-foreground">
+                  {lang === "en" ? "Completed" : "مكتمل"}
+                </span>
+
+                <span className="text-primary font-medium">
+                  {answered}/{total}
+                </span>
               </div>
+
               <div className="w-full h-2 bg-muted rounded-full mb-6">
-                <div className="h-2 bg-primary rounded-full transition-all duration-300" style={{ width: `${progressPct}%` }} />
+                <div
+                  className="h-2 bg-primary rounded-full transition-all duration-300"
+                  style={{ width: `${progressPct}%` }}
+                />
               </div>
 
               <h4 className="font-medium text-foreground text-sm mb-3">
                 {lang === "en" ? "CEFR Levels" : "مستويات CEFR"}
               </h4>
+
               <div className="space-y-2.5">
                 {levels.map((lv) => (
-                  <div key={lv} className="flex items-center gap-2.5 text-sm">
-                    <div className={`w-3 h-3 rounded-full ${levelColors[lv]}`} />
-                    <span className="text-foreground">{lv} - {levelLabels[lang][lv]}</span>
+                  <div
+                    key={lv}
+                    className="flex items-center gap-2.5 text-sm"
+                  >
+                    <div
+                      className={`w-3 h-3 rounded-full ${levelColors[lv]}`}
+                    />
+
+                    <span className="text-foreground">
+                      {lv} - {levelLabels[lang][lv]}
+                    </span>
                   </div>
                 ))}
               </div>
 
               {total > 0 && answered === total && (
-                <Button className="w-full mt-6" onClick={handleSubmit} disabled={submitting}>
-                  {submitting ? <Loader2 className="animate-spin" size={16} /> : (lang === "en" ? "Submit Test" : "إرسال الاختبار")}
+                <Button
+                  className="w-full mt-6"
+                  onClick={handleSubmit}
+                  disabled={submitting}
+                >
+                  {submitting ? (
+                    <Loader2 className="animate-spin" size={16} />
+                  ) : (
+                    lang === "en" ? "Submit Test" : "إرسال الاختبار"
+                  )}
                 </Button>
               )}
             </div>
@@ -135,8 +245,11 @@ const PlacementTest = () => {
           <div className="flex-1 max-w-2xl">
             <div className="mb-8">
               <h2 className="text-2xl font-bold text-foreground mb-2">
-                {lang === "en" ? "English Placement Test" : "اختبار تحديد المستوى"}
+                {lang === "en"
+                  ? "English Placement Test"
+                  : "اختبار تحديد المستوى"}
               </h2>
+
               <p className="text-muted-foreground">
                 {quiz?.description ||
                   (lang === "en"
@@ -148,19 +261,25 @@ const PlacementTest = () => {
             {isLoading && (
               <div className="flex items-center justify-center py-16 text-muted-foreground gap-2">
                 <Loader2 className="animate-spin" size={20} />
-                {lang === "en" ? "Loading questions..." : "جارٍ تحميل الأسئلة..."}
+                {lang === "en"
+                  ? "Loading questions..."
+                  : "جارٍ تحميل الأسئلة..."}
               </div>
             )}
 
             {isError && (
               <div className="text-center py-16 text-destructive">
-                {lang === "en" ? "Failed to load quiz. Please try again." : "فشل تحميل الاختبار. حاول مرة أخرى."}
+                {lang === "en"
+                  ? "Failed to load quiz. Please try again."
+                  : "فشل تحميل الاختبار. حاول مرة أخرى."}
               </div>
             )}
 
             {!isLoading && !isError && total === 0 && (
               <div className="text-center py-16 text-muted-foreground">
-                {lang === "en" ? "No questions available." : "لا توجد أسئلة متاحة."}
+                {lang === "en"
+                  ? "No questions available."
+                  : "لا توجد أسئلة متاحة."}
               </div>
             )}
 
@@ -168,18 +287,37 @@ const PlacementTest = () => {
               {questions.map((q, idx) => {
                 const levelKey = badgeLevels[idx % badgeLevels.length];
                 const levelColor = levelColors[levelKey];
-                const sortedAnswers = [...q.answers].sort((a, b) => a.order - b.order);
+
+                const sortedAnswers = [...q.answers].sort(
+                  (a, b) => a.order - b.order
+                );
+
+                const isMultipleChoice =
+                  q.question_type === "multiple_choice";
+
                 return (
-                  <div key={q.id} className="border-t border-border pt-6">
+                  <div
+                    key={q.id}
+                    className="border-t border-border pt-6"
+                  >
                     <div className="flex items-start gap-3 mb-4">
-                      <div className={`w-8 h-8 rounded-full ${levelColor} text-white flex items-center justify-center text-sm font-bold shrink-0`}>
+                      <div
+                        className={`w-8 h-8 rounded-full ${levelColor} text-white flex items-center justify-center text-sm font-bold shrink-0`}
+                      >
                         {idx + 1}
                       </div>
-                      <p className="text-foreground font-medium pt-1">{q.question_text}</p>
+
+                      <p className="text-foreground font-medium pt-1">
+                        {q.question_text}
+                      </p>
                     </div>
+
                     <div className="space-y-3 ms-11">
                       {sortedAnswers.map((ans, optIdx) => {
-                        const isSelected = answers[q.id] === ans.id;
+                        const isSelected = (
+                          answers[q.id] || []
+                        ).includes(ans.id);
+
                         return (
                           <label
                             key={ans.id}
@@ -189,20 +327,48 @@ const PlacementTest = () => {
                                 : "border-border hover:bg-muted/50"
                             }`}
                           >
-                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${
-                              isSelected ? "border-primary" : "border-muted-foreground/40"
-                            }`}>
-                              {isSelected && <div className="w-2.5 h-2.5 rounded-full bg-primary" />}
+                            {/* Checkbox for multiple choice,
+                                radio for single choice */}
+                            <div
+                              className={`w-5 h-5 ${
+                                isMultipleChoice
+                                  ? "rounded-md"
+                                  : "rounded-full"
+                              } border-2 flex items-center justify-center shrink-0 ${
+                                isSelected
+                                  ? "border-primary bg-primary"
+                                  : "border-muted-foreground/40"
+                              }`}
+                            >
+                              {isSelected && (
+                                <CheckCircle2
+                                  size={14}
+                                  className="text-primary-foreground"
+                                />
+                              )}
                             </div>
+
                             <input
-                              type="radio"
+                              type={
+                                isMultipleChoice
+                                  ? "checkbox"
+                                  : "radio"
+                              }
                               name={`q-${q.id}`}
                               className="sr-only"
                               checked={isSelected}
-                              onChange={() => handleSelect(q.id, ans.id)}
+                              onChange={() =>
+                                handleSelect(
+                                  q.id,
+                                  ans.id,
+                                  isMultipleChoice
+                                )
+                              }
                             />
+
                             <span className="text-foreground text-sm">
-                              {String.fromCharCode(65 + optIdx)}) {ans.answer_text}
+                              {String.fromCharCode(65 + optIdx)}){" "}
+                              {ans.answer_text}
                             </span>
                           </label>
                         );
@@ -215,9 +381,24 @@ const PlacementTest = () => {
 
             {total > 0 && answered === total && (
               <div className="mt-10 text-center">
-                <Button size="lg" onClick={handleSubmit} disabled={submitting} className="gap-2">
-                  {submitting ? <Loader2 className="animate-spin" size={18} /> : <CheckCircle2 size={18} />}
-                  {lang === "en" ? "Submit & See My Level" : "إرسال ومعرفة مستواي"}
+                <Button
+                  size="lg"
+                  onClick={handleSubmit}
+                  disabled={submitting}
+                  className="gap-2"
+                >
+                  {submitting ? (
+                    <Loader2
+                      className="animate-spin"
+                      size={18}
+                    />
+                  ) : (
+                    <CheckCircle2 size={18} />
+                  )}
+
+                  {lang === "en"
+                    ? "Submit & See My Level"
+                    : "إرسال ومعرفة مستواي"}
                 </Button>
               </div>
             )}

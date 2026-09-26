@@ -1,6 +1,19 @@
 import { BASE_URL } from "@/config/api";
 import { User, LoginData, RegisterData } from "../types/auth";
 
+/**
+ * Laravel validation errors look like: { field: ["message1", "message2"] }.
+ * We surface the first message found, since that's the most actionable one.
+ */
+function extractErrorMessage(parsed: any, fallback: string): string {
+  if (parsed?.errors && typeof parsed.errors === "object") {
+    const firstField = Object.keys(parsed.errors)[0];
+    const firstMessage = parsed.errors[firstField]?.[0];
+    if (firstMessage) return firstMessage;
+  }
+  return parsed?.message || fallback;
+}
+
 export async function login(data: LoginData): Promise<User> {
   const res = await fetch(`${BASE_URL}/auth/login`, {
     method: "POST",
@@ -11,7 +24,7 @@ export async function login(data: LoginData): Promise<User> {
     body: JSON.stringify(data),
   });
   const parsed = await res.json();
-  if (!res.ok) throw new Error(parsed.message || "Login failed");
+  if (!res.ok) throw new Error(extractErrorMessage(parsed, "Login failed"));
   if (parsed.data?.access_token) localStorage.setItem("auth_token", parsed.data.access_token);
   return parsed.data.user;
 }
@@ -19,7 +32,6 @@ export async function login(data: LoginData): Promise<User> {
 export async function getUser(): Promise<User | null> {
   const token = localStorage.getItem("auth_token");
 
-  // No token = no request, return null quietly
   if (!token) return null;
 
   const res = await fetch(`${BASE_URL}/auth/me`, {
@@ -30,12 +42,12 @@ export async function getUser(): Promise<User | null> {
   });
 
   if (!res.ok) {
-    // Token is invalid or expired, clean it up
     if (res.status === 401) localStorage.removeItem("auth_token");
-    return null; // quiet failure, no throw, no redirect
+    return null;
   }
 
-  return res.json();
+  const parsed = await res.json();
+  return parsed.data;
 }
 
 export async function logout() {
@@ -60,7 +72,7 @@ export async function register(data: RegisterData): Promise<User> {
     body: JSON.stringify(data),
   });
   const parsed = await res.json();
-  if (!res.ok) throw new Error(parsed.message || "Registration failed");
+  if (!res.ok) throw new Error(extractErrorMessage(parsed, "Registration failed"));
   if (parsed.data?.access_token) localStorage.setItem("auth_token", parsed.data.access_token);
   return parsed.data.user;
 }

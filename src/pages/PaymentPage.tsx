@@ -21,7 +21,7 @@ const PaymentPage = () => {
   // Course information can be passed from the previous page
   const course = location.state?.course;
 
-  const whatsappNumber = "213551300060";
+  const whatsappNumber = "213557439844";
 
   const whatsappMessage = course
     ? `Hello, I want to enroll in the course "${course.title}".`
@@ -168,7 +168,7 @@ const PaymentPage = () => {
                     dir="ltr"
                     className="text-sm text-muted-foreground mt-0.5"
                   >
-                    0551 30 00 60
+                    0557 43 98 44
                   </p>
                 </div>
               </div>

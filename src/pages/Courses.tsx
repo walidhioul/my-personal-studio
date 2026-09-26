@@ -99,6 +99,74 @@ const Courses = () => {
 
   const displayLevels = levelOrder.filter((lv) => coursesByLevel[lv]?.length);
 
+  // "All" filter (and no forced userLevel): show every course mixed together, no level titles.
+  const showFlatGrid = filterLevel === "all" && !userLevel;
+
+  const renderCourseCard = (course: (typeof displayCourses)[number]) => (
+    <div
+      key={course.id}
+      className="bg-card border border-border rounded-xl overflow-hidden hover:shadow-lg transition-shadow group"
+    >
+      <div className="h-56 overflow-hidden bg-muted">
+        <img
+          src={resolveAsset(
+            course.thumbnail_url || course.thumbnail || course.picture,
+          )}
+          alt={course.title}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          loading="lazy"
+          onError={(e) => {
+            (e.currentTarget as HTMLImageElement).src = "/placeholder.svg";
+          }}
+        />
+      </div>
+
+      <div className="p-5">
+        <div className="flex items-center justify-between mb-2">
+          <span
+            className={`text-xs font-bold ${levelTextColor[course.level as ApiLevel] || "text-muted-foreground"}`}
+          >
+            {course.level}
+          </span>
+
+          {course.rating && (
+            <span className="flex items-center gap-1 text-xs text-muted-foreground">
+              <Star size={12} className="fill-yellow-400 text-yellow-400" />
+              ({course.rating})
+            </span>
+          )}
+        </div>
+
+        <h3 className="font-semibold text-foreground mb-4 line-clamp-1">
+          {course.title}
+        </h3>
+
+        <div className="flex items-center justify-between mb-4">
+          {course.duration && (
+            <span className="flex items-center gap-1 text-xs text-muted-foreground">
+              <Clock size={12} />
+              {course.duration} {lang === "en" ? "weeks" : "أسبوع"}
+            </span>
+          )}
+
+          <span className="font-bold text-foreground">
+            {Number(course.price) === 0
+              ? lang === "en"
+                ? "Free"
+                : "مجاني"
+              : `${course.price} DA`}
+          </span>
+        </div>
+
+        <Button className="w-full" size="sm" asChild>
+          <Link to={`/courses/${course.id}`}>
+            {lang === "en" ? "View Details" : "عرض التفاصيل"}
+          </Link>
+        </Button>
+      </div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
@@ -186,8 +254,15 @@ const Courses = () => {
           </div>
         )}
 
+        {!isLoading && !error && showFlatGrid && displayCourses.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {displayCourses.map(renderCourseCard)}
+          </div>
+        )}
+
         {!isLoading &&
           !error &&
+          !showFlatGrid &&
           displayLevels.map((level) => (
             <section key={level} className="mb-16 last:mb-0">
               <div className="text-center mb-10">
@@ -207,77 +282,7 @@ const Courses = () => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {coursesByLevel[level]!.map((course) => (
-                  <div
-                    key={course.id}
-                    className="bg-card border border-border rounded-xl overflow-hidden hover:shadow-lg transition-shadow group"
-                  >
-                    <div className="h-56 overflow-hidden bg-muted">
-                      <img
-                        src={resolveAsset(
-                          course.thumbnail_url ||
-                            course.thumbnail ||
-                            course.picture,
-                        )}
-                        alt={course.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        loading="lazy"
-                        onError={(e) => {
-                          (e.currentTarget as HTMLImageElement).src =
-                            "/placeholder.svg";
-                        }}
-                      />
-                    </div>
-
-                    <div className="p-5">
-                      <div className="flex items-center justify-between mb-2">
-                        <span
-                          className={`text-xs font-bold ${levelTextColor[course.level as ApiLevel] || "text-muted-foreground"}`}
-                        >
-                          {course.level}
-                        </span>
-
-                        {course.rating && (
-                          <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                            <Star
-                              size={12}
-                              className="fill-yellow-400 text-yellow-400"
-                            />
-                            ({course.rating})
-                          </span>
-                        )}
-                      </div>
-
-                      <h3 className="font-semibold text-foreground mb-4 line-clamp-1">
-                        {course.title}
-                      </h3>
-
-                      <div className="flex items-center justify-between mb-4">
-                        {course.duration && (
-                          <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                            <Clock size={12} />
-                            {course.duration}{" "}
-                            {lang === "en" ? "weeks" : "أسبوع"}
-                          </span>
-                        )}
-
-                        <span className="font-bold text-foreground">
-                          {Number(course.price) === 0
-                            ? lang === "en"
-                              ? "Free"
-                              : "مجاني"
-                            : `${course.price} DA`}
-                        </span>
-                      </div>
-
-                      <Button className="w-full" size="sm" asChild>
-                        <Link to={`/courses/${course.id}`}>
-                          {lang === "en" ? "View Details" : "عرض التفاصيل"}
-                        </Link>
-                      </Button>
-                    </div>
-                  </div>
-                ))}
+                {coursesByLevel[level]!.map(renderCourseCard)}
               </div>
             </section>
           ))}

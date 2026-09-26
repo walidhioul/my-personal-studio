@@ -44,7 +44,7 @@ const Navbar = () => {
     <header className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b border-border">
       <div className="container mx-auto flex items-center justify-between h-16 px-4">
         <Link to="/" className="flex items-center gap-2">
-          <img src={logo} alt="To The Moon With English" className="h-10 w-auto rounded-lg" />
+          <img src={logo} alt="To The Moon With English" className="h-14 w-auto rounded-lg" />
         </Link>
 
         <nav className="hidden md:flex items-center gap-8">

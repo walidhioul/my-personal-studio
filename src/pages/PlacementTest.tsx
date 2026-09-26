@@ -16,6 +16,8 @@ const PlacementTest = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
+  
+
   // Store multiple selected answers for each question
   const [answers, setAnswers] = useState<Record<number, number[]>>({});
   const [submitting, setSubmitting] = useState(false);
@@ -29,7 +31,7 @@ const PlacementTest = () => {
 
   const total = questions.length;
   const answered = Object.keys(answers).filter(
-    (questionId) => (answers[Number(questionId)] || []).length > 0
+    (questionId) => (answers[Number(questionId)] || []).length > 0,
   ).length;
 
   const progressPct = total > 0 ? (answered / total) * 100 : 0;
@@ -37,7 +39,7 @@ const PlacementTest = () => {
   const handleSelect = (
     questionId: number,
     answerId: number,
-    multiple: boolean
+    multiple: boolean,
   ) => {
     setAnswers((prev) => {
       const current = prev[questionId] || [];
@@ -155,9 +157,7 @@ const PlacementTest = () => {
             <div>
               <h1 className="font-bold text-foreground text-lg">
                 {quiz?.title ||
-                  (lang === "en"
-                    ? "Cambridge Assessment"
-                    : "تقييم كامبريدج")}
+                  (lang === "en" ? "Cambridge Assessment" : "تقييم كامبريدج")}
               </h1>
 
               <p className="text-sm text-muted-foreground">
@@ -179,7 +179,6 @@ const PlacementTest = () => {
 
       <main className="flex-1 container mx-auto px-4 py-8">
         <div className="flex flex-col lg:flex-row gap-8">
-
           {/* Sidebar */}
           <aside className="lg:w-72 shrink-0">
             <div className="bg-card border border-border rounded-xl p-6 sticky top-24">
@@ -210,10 +209,7 @@ const PlacementTest = () => {
 
               <div className="space-y-2.5">
                 {levels.map((lv) => (
-                  <div
-                    key={lv}
-                    className="flex items-center gap-2.5 text-sm"
-                  >
+                  <div key={lv} className="flex items-center gap-2.5 text-sm">
                     <div
                       className={`w-3 h-3 rounded-full ${levelColors[lv]}`}
                     />
@@ -233,8 +229,10 @@ const PlacementTest = () => {
                 >
                   {submitting ? (
                     <Loader2 className="animate-spin" size={16} />
+                  ) : lang === "en" ? (
+                    "Submit Test"
                   ) : (
-                    lang === "en" ? "Submit Test" : "إرسال الاختبار"
+                    "إرسال الاختبار"
                   )}
                 </Button>
               )}
@@ -289,17 +287,13 @@ const PlacementTest = () => {
                 const levelColor = levelColors[levelKey];
 
                 const sortedAnswers = [...q.answers].sort(
-                  (a, b) => a.order - b.order
+                  (a, b) => a.order - b.order,
                 );
 
-                const isMultipleChoice =
-                  q.question_type === "multiple_choice";
+                const isMultipleChoice = q.type === "multiple_choice";
 
                 return (
-                  <div
-                    key={q.id}
-                    className="border-t border-border pt-6"
-                  >
+                  <div key={q.id} className="border-t border-border pt-6">
                     <div className="flex items-start gap-3 mb-4">
                       <div
                         className={`w-8 h-8 rounded-full ${levelColor} text-white flex items-center justify-center text-sm font-bold shrink-0`}
@@ -314,9 +308,9 @@ const PlacementTest = () => {
 
                     <div className="space-y-3 ms-11">
                       {sortedAnswers.map((ans, optIdx) => {
-                        const isSelected = (
-                          answers[q.id] || []
-                        ).includes(ans.id);
+                        const isSelected = (answers[q.id] || []).includes(
+                          ans.id,
+                        );
 
                         return (
                           <label
@@ -331,9 +325,7 @@ const PlacementTest = () => {
                                 radio for single choice */}
                             <div
                               className={`w-5 h-5 ${
-                                isMultipleChoice
-                                  ? "rounded-md"
-                                  : "rounded-full"
+                                isMultipleChoice ? "rounded-md" : "rounded-full"
                               } border-2 flex items-center justify-center shrink-0 ${
                                 isSelected
                                   ? "border-primary bg-primary"
@@ -349,20 +341,12 @@ const PlacementTest = () => {
                             </div>
 
                             <input
-                              type={
-                                isMultipleChoice
-                                  ? "checkbox"
-                                  : "radio"
-                              }
+                              type={isMultipleChoice ? "checkbox" : "radio"}
                               name={`q-${q.id}`}
                               className="sr-only"
                               checked={isSelected}
                               onChange={() =>
-                                handleSelect(
-                                  q.id,
-                                  ans.id,
-                                  isMultipleChoice
-                                )
+                                handleSelect(q.id, ans.id, isMultipleChoice)
                               }
                             />
 
@@ -388,10 +372,7 @@ const PlacementTest = () => {
                   className="gap-2"
                 >
                   {submitting ? (
-                    <Loader2
-                      className="animate-spin"
-                      size={18}
-                    />
+                    <Loader2 className="animate-spin" size={18} />
                   ) : (
                     <CheckCircle2 size={18} />
                   )}

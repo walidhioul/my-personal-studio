@@ -13,6 +13,7 @@ const Register = () => {
   const navigate = useNavigate();
 
   const [showPassword, setShowPassword] = useState(false);
+  const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -59,7 +60,7 @@ const Register = () => {
           <div className="absolute bottom-20 right-10 w-96 h-96 rounded-full bg-primary-foreground blur-3xl" />
         </div>
         <div className="relative z-10 text-center px-12">
-          <div className="w-16 h-16 rounded-2xl bg-primary-foreground/20 flex items-center justify-center mx-auto mb-6 overflow-hidden">
+          <div className="w-24 h-24 rounded-2xl bg-primary-foreground/20 flex items-center justify-center mx-auto mb-6 overflow-hidden">
             <img src={logo} alt="To The Moon With English" className="w-full h-full object-cover" />
           </div>
           <h2 className="text-3xl font-bold text-primary-foreground mb-4">To The Moon With English</h2>
@@ -75,7 +76,7 @@ const Register = () => {
       <div className="w-full lg:w-1/2 flex flex-col">
         <div className="flex justify-between items-center p-6">
           <Link to="/" className="flex items-center gap-2">
-            <img src={logo} alt="To The Moon With English" className="h-9 w-auto rounded-lg" />
+            <img src={logo} alt="To The Moon With English" className="h-11 w-auto rounded-lg" />
             <span className="font-bold text-foreground text-sm lg:hidden">To The Moon</span>
           </Link>
           <Button variant="ghost" size="sm" onClick={() => setLang(lang === "en" ? "ar" : "en")} className="gap-1.5">
@@ -142,13 +143,22 @@ const Register = () => {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground">{t.auth.confirmPassword}</label>
-                <Input
-                  type="password"
-                  placeholder={t.auth.confirmPasswordPlaceholder}
-                  value={passwordConfirm}
-                  onChange={(e) => setPasswordConfirm(e.target.value)}
-                  required
-                />
+                <div className="relative">
+                  <Input
+                    type={showPasswordConfirm ? "text" : "password"}
+                    placeholder={t.auth.confirmPasswordPlaceholder}
+                    value={passwordConfirm}
+                    onChange={(e) => setPasswordConfirm(e.target.value)}
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPasswordConfirm(!showPasswordConfirm)}
+                    className="absolute end-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  >
+                    {showPasswordConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
               </div>
 
               <Button type="submit" className="w-full" disabled={loading}>

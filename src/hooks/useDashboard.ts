@@ -7,5 +7,6 @@ export function useDashboard() {
     queryFn: getDashboardData,
     select: (res) => res.data,
     staleTime: 2 * 60 * 1000,
+    enabled: Boolean(localStorage.getItem("auth_token")),
   });
 }
